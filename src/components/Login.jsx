@@ -72,7 +72,7 @@ export default function Login() {
     <div className="login-shell">
       <div className="login-card">
         <div className="login-brand">
-          <span className="brand-mark brand-mark--gradient">PsychMetric</span>
+          <img src="/logo.svg" alt="PsychMetric" className="login-logo" />
         </div>
 
         <div className="login-tabs" role="tablist">

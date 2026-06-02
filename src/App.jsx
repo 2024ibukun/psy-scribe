@@ -22,7 +22,7 @@ function Header({ user }) {
   return (
     <header className="site-header">
       <Link className="brand" to="/" aria-label="PsychMetric home">
-        <span className="brand-mark brand-mark--gradient">PsychMetric</span>
+        <img src="/logo.svg" alt="PsychMetric" className="brand-logo" />
       </Link>
       <nav className="nav-links" aria-label="Primary navigation">
         <NavLink to="/" end>Home</NavLink>
@@ -177,7 +177,7 @@ function App() {
   if (user === undefined) {
     return (
       <div className="app-shell auth-loading" aria-label="Loading">
-        <span className="brand-mark brand-mark--gradient">PsychMetric</span>
+        <img src="/logo.svg" alt="PsychMetric" className="brand-logo" style={{ width: 220 }} />
       </div>
     )
   }
