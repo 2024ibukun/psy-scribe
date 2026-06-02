@@ -29,15 +29,22 @@
 }
 
 .brand-mark {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
   border-radius: 10px;
   color: white;
   background: linear-gradient(135deg, var(--primary), #235b8f);
   font-size: 0.85rem;
   font-weight: 800;
+}
+
+.brand-mark--gradient {
+  background: linear-gradient(135deg, #0A6C74, #6B3FA0);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .brand strong,
@@ -311,7 +318,7 @@
 
 .metric-item strong {
   margin-bottom: 4px;
-  color: #235b8f;
+  color: #0A6C74;
   font-size: 1.7rem;
 }
 
@@ -361,7 +368,7 @@
   display: block;
   margin-bottom: 18px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #127a76, #235b8f);
+  background: linear-gradient(135deg, #0A6C74, #6B3FA0);
 }
 
 .feature-card h3,
@@ -407,8 +414,8 @@
   margin-bottom: 18px;
   padding: 6px 10px;
   border-radius: 999px;
-  color: #235b8f;
-  background: #e9f1f8;
+  color: #6B3FA0;
+  background: #f0eaf8;
   font-size: 0.74rem;
   font-weight: 800;
 }
@@ -430,24 +437,20 @@
     align-items: flex-start;
     flex-wrap: wrap;
   }
-
   .nav-links {
     order: 3;
     width: 100%;
     justify-content: flex-start;
     overflow-x: auto;
   }
-
   .hero-section {
     min-height: auto;
     grid-template-columns: 1fr;
     padding-top: 44px;
   }
-
   .product-preview {
     max-width: 720px;
   }
-
   .feature-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -462,48 +465,41 @@
   .site-footer {
     width: min(100% - 32px, 1180px);
   }
-
   .site-header {
     width: 100%;
     padding: 14px 16px;
   }
-
   .brand small,
   .nav-cta {
     display: none;
   }
-
   .nav-links {
     gap: 4px;
   }
-
   .nav-links a {
     padding: 8px 10px;
     white-space: nowrap;
   }
-
   .hero-copy h1,
   .placeholder-copy h1 {
     font-size: 2.45rem;
   }
-
   .preview-grid,
   .metrics-band,
   .feature-grid,
   .placeholder-list {
     grid-template-columns: 1fr;
   }
-
   .note-panel,
   .score-panel {
     min-height: auto;
   }
-
   .hero-actions,
   .site-footer {
     flex-direction: column;
   }
 }
+
 /* Auth / Login */
 .auth-loading {
   display: flex;
@@ -533,12 +529,10 @@
 .login-brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: .75rem;
   margin-bottom: 1.75rem;
 }
-
-.login-brand strong { display: block; font-size: 1.1rem; line-height: 1.2; }
-.login-brand small { display: block; font-size: .75rem; color: var(--muted, #6b7280); }
 
 .login-tabs {
   display: flex;
@@ -561,8 +555,8 @@
 }
 
 .login-tabs button.active {
-  color: var(--teal, #14b8a6);
-  border-bottom-color: var(--teal, #14b8a6);
+  color: #0A6C74;
+  border-bottom-color: #0A6C74;
 }
 
 .login-form {
@@ -588,8 +582,8 @@
 
 .field-input:focus {
   outline: none;
-  border-color: var(--teal, #14b8a6);
-  box-shadow: 0 0 0 3px rgba(20,184,166,.15);
+  border-color: #0A6C74;
+  box-shadow: 0 0 0 3px rgba(10,108,116,.15);
 }
 
 .magic-description { font-size: .85rem; color: var(--muted, #6b7280); margin: 0 0 .5rem; line-height: 1.5; }

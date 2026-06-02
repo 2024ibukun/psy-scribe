@@ -6,7 +6,7 @@ import Login from './components/Login'
 import './App.css'
 
 const features = [
-  { title: 'Psychiatry-aware notes', description: 'Draft visit notes with psychiatric history, MSE, risk assessment, diagnosis, and plan sections already in mind.' },
+  { title: 'Psychiatry-aware assessments', description: 'Administer validated psychometric tools with psychiatric history, MSE, risk assessment, diagnosis, and plan sections already in mind.' },
   { title: 'Measurement-based care', description: 'Keep PHQ-9, GAD-7, PCL-5, AUDIT-C, and other common scales close to the encounter workflow.' },
   { title: 'Clinician review first', description: 'AI output is treated as a draft so the clinician remains responsible for review, edits, and final sign-off.' },
   { title: 'Privacy-minded foundation', description: 'Designed with encryption, access controls, audit trails, and HIPAA-ready workflows as product requirements.' },
@@ -21,12 +21,8 @@ const metrics = [
 function Header({ user }) {
   return (
     <header className="site-header">
-      <Link className="brand" to="/" aria-label="iScribe home">
-        <span className="brand-mark">iS</span>
-        <span>
-          <strong>iScribe</strong>
-          <small>Psy-Scribe for behavioral health</small>
-        </span>
+      <Link className="brand" to="/" aria-label="PsychMetric home">
+        <span className="brand-mark brand-mark--gradient">PsychMetric</span>
       </Link>
       <nav className="nav-links" aria-label="Primary navigation">
         <NavLink to="/" end>Home</NavLink>
@@ -43,11 +39,11 @@ function Header({ user }) {
 
 function ProductPreview() {
   return (
-    <div className="product-preview" aria-label="AI psychiatry scribe product preview">
+    <div className="product-preview" aria-label="PsychMetric clinical assessment preview">
       <div className="preview-toolbar"><span /><span /><span /></div>
       <div className="preview-grid">
         <section className="note-panel">
-          <p className="panel-label">Draft note</p>
+          <p className="panel-label">Assessment</p>
           <h3>Follow-up psychiatry visit</h3>
           <div className="note-line wide" />
           <div className="note-line" />
@@ -76,14 +72,18 @@ function HomePage() {
     <>
       <section className="hero-section">
         <div className="hero-copy">
-          <p className="eyebrow">Psychiatry AI scribe platform</p>
-          <h1>Clinical documentation and psychometrics for modern mental health care.</h1>
-          <p className="hero-text">iScribe helps psychiatry teams draft structured notes, track rating scales, and organize visit templates in one clean workspace.</p>
+          <p className="eyebrow">AI-powered clinical assessment platform</p>
+          <h1>Psychometric assessments for modern mental health care.</h1>
+          <p className="hero-text">
+            PsychMetric helps psychiatry teams administer validated scales, track rating scores, and organize clinical assessments in one clean workspace.
+          </p>
           <div className="hero-actions">
             <Link className="primary-button" to="/templates">Explore templates</Link>
             <Link className="secondary-button" to="/psychometrics">View psychometrics</Link>
           </div>
-          <p className="compliance-note">Built with HIPAA-ready design priorities. Formal compliance depends on deployment, policies, agreements, and operational controls.</p>
+          <p className="compliance-note">
+            Built with HIPAA-ready design priorities. Formal compliance depends on deployment, policies, agreements, and operational controls.
+          </p>
         </div>
         <ProductPreview />
       </section>
@@ -99,7 +99,7 @@ function HomePage() {
         <div className="section-heading">
           <p className="eyebrow">Core workflow</p>
           <h2>Simple tools for psychiatric encounters.</h2>
-          <p>The first version focuses on the foundation: notes, templates, measures, and clinician-controlled review.</p>
+          <p>The first version focuses on the foundation: assessments, templates, measures, and clinician-controlled review.</p>
         </div>
         <div className="feature-grid">
           {features.map((feature) => (
@@ -177,7 +177,7 @@ function App() {
   if (user === undefined) {
     return (
       <div className="app-shell auth-loading" aria-label="Loading">
-        <span className="brand-mark">iS</span>
+        <span className="brand-mark brand-mark--gradient">PsychMetric</span>
       </div>
     )
   }
@@ -195,8 +195,8 @@ function App() {
         </Routes>
       </main>
       <footer className="site-footer">
-        <span>iScribe / Psy-Scribe</span>
-        <span>AI-assisted drafts for clinician review.</span>
+        <span>PsychMetric</span>
+        <span>AI-powered psychometric assessments for psychiatry.</span>
       </footer>
     </div>
   )

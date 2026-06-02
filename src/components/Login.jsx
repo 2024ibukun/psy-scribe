@@ -72,11 +72,7 @@ export default function Login() {
     <div className="login-shell">
       <div className="login-card">
         <div className="login-brand">
-          <span className="brand-mark">iS</span>
-          <div>
-            <strong>iScribe</strong>
-            <small>Psychiatry AI scribe platform</small>
-          </div>
+          <span className="brand-mark brand-mark--gradient">PsychMetric</span>
         </div>
 
         <div className="login-tabs" role="tablist">

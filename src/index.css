@@ -3,18 +3,27 @@
   line-height: 1.5;
   font-weight: 400;
   color: #18282e;
-  background: #f7faf9;
+  background: #F8F9FA;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --background: #f7faf9;
+
+  /* Brand tokens */
+  --color-primary: #0A6C74;
+  --color-secondary: #6B3FA0;
+  --color-success: #10B981;
+  --color-bg: #F8F9FA;
+  --color-white: #FFFFFF;
+
+  /* App tokens */
+  --background: #F8F9FA;
   --surface: #ffffff;
   --line: #e2e9e8;
   --line-strong: #cddadb;
   --ink: #18282e;
   --muted: #61747b;
-  --primary: #127a76;
-  --primary-dark: #0b625e;
+  --primary: #0A6C74;
+  --primary-dark: #085960;
 }
 
 * {
@@ -46,7 +55,7 @@ button:not(:disabled):hover {
 
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid rgba(18, 122, 118, 0.28);
+  outline: 3px solid rgba(10, 108, 116, 0.28);
   outline-offset: 2px;
 }
 
