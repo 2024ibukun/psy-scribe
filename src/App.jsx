@@ -23,7 +23,7 @@ function Header({ user }) {
     <header className="site-header">
       <Link className="brand" to="/" aria-label="PsychMetric home">
         <span className="logo-wrap">
-          <img src="/logo.svg" alt="PsychMetric" className="brand-logo" />
+          <img src="/logo.png" alt="PsychMetric" className="brand-logo" />
         </span>
       </Link>
       <nav className="nav-links" aria-label="Primary navigation">
@@ -180,7 +180,7 @@ function App() {
     return (
       <div className="app-shell auth-loading" aria-label="Loading">
         <span className="logo-wrap">
-          <img src="/logo.svg" alt="PsychMetric" className="brand-logo" style={{ width: 220, height: 'auto' }} />
+          <img src="/logo.png" alt="PsychMetric" className="brand-logo loading-logo" />
         </span>
       </div>
     )
