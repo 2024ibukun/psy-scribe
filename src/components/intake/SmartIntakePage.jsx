@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import {
   collection,
   doc,
   setDoc,
+  getDoc,
   getDocs,
   updateDoc,
   deleteDoc,
@@ -24,18 +26,24 @@ function generateToken() {
 // ─────────────────────────────────────────────
 // Generate Link Panel
 // ─────────────────────────────────────────────
-function GenerateLinkPanel({ user }) {
-  const [patientName, setPatientName] = useState("")
-  const [dob, setDob] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [generatedLink, setGeneratedLink] = useState(null)
-  const [copied, setCopied] = useState(false)
-  const [error, setError] = useState("")
+function GenerateLinkPanel({ user, profile }) {
+  const [patientName,    setPatientName]    = useState("")
+  const [dob,            setDob]            = useState("")
+  const [loading,        setLoading]        = useState(false)
+  const [generatedLink,  setGeneratedLink]  = useState(null)
+  const [copied,         setCopied]         = useState(false)
+  const [copiedMsg,      setCopiedMsg]      = useState(false)
+  const [error,          setError]          = useState("")
+
+  const suggestedMessage = generatedLink
+    ? profile?.clinicName
+      ? `Hi, this is ${profile.clinicName}. Before your appointment, please complete your intake form here: ${generatedLink}. It takes about 10 minutes.`
+      : `Please complete your intake form before your appointment: ${generatedLink}. It takes about 10 minutes.`
+    : ""
 
   async function handleGenerate(e) {
     e.preventDefault()
     setError("")
-
     if (!patientName.trim() || !dob) {
       setError("Please enter the patient name and date of birth.")
       return
@@ -44,14 +52,12 @@ function GenerateLinkPanel({ user }) {
       setError("Authentication error — please sign out and sign in again.")
       return
     }
-
     setLoading(true)
     try {
       const token = generateToken()
       const expiresAt = Timestamp.fromDate(
         new Date(Date.now() + EXPIRY_DAYS * 24 * 60 * 60 * 1000)
       )
-
       await Promise.race([
         setDoc(doc(db, "intakeTokens", token), {
           token,
@@ -69,7 +75,6 @@ function GenerateLinkPanel({ user }) {
           )
         ),
       ])
-
       setGeneratedLink(`${window.location.origin}/intake/${token}`)
     } catch (err) {
       const code = err?.code ?? "unknown"
@@ -77,12 +82,11 @@ function GenerateLinkPanel({ user }) {
       if (code === "TIMEOUT") {
         setError(
           "Firestore is not responding (timed out). " +
-          "Go to Firebase Console → Firestore Database and ensure the database exists and rules are published."
+          "Go to Firebase Console → Firestore Database and ensure the database and rules are set up."
         )
       } else if (code === "permission-denied") {
         setError(
-          "Firestore permissions denied. " +
-          "Publish the security rules in Firebase Console → Firestore Database → Rules tab."
+          "Firestore permissions denied. Publish the security rules in Firebase Console → Firestore Database → Rules."
         )
       } else {
         setError(`Write failed (${code}). Check the browser console (F12) for details.`)
@@ -92,10 +96,16 @@ function GenerateLinkPanel({ user }) {
     }
   }
 
-  async function handleCopy() {
+  async function handleCopyLink() {
     await navigator.clipboard.writeText(generatedLink)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function handleCopyMessage() {
+    await navigator.clipboard.writeText(suggestedMessage)
+    setCopiedMsg(true)
+    setTimeout(() => setCopiedMsg(false), 2000)
   }
 
   function handleReset() {
@@ -103,6 +113,7 @@ function GenerateLinkPanel({ user }) {
     setPatientName("")
     setDob("")
     setCopied(false)
+    setCopiedMsg(false)
   }
 
   return (
@@ -143,19 +154,35 @@ function GenerateLinkPanel({ user }) {
           </button>
         </form>
       ) : (
-        <div className="intake-generated-link">
-          <p>Intake link ready — expires in {EXPIRY_DAYS} days</p>
-          <p className="intake-link-text">{generatedLink}</p>
-          <div style={{ display: "flex", gap: "8px" }}>
+        <div>
+          {/* Link */}
+          <div className="intake-generated-link">
+            <p>Intake link ready — expires in {EXPIRY_DAYS} days</p>
+            <p className="intake-link-text">{generatedLink}</p>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className={`intake-copy-btn${copied ? " intake-copy-btn--copied" : ""}`}
+                onClick={handleCopyLink}
+              >
+                {copied ? "Copied ✓" : "Copy Link"}
+              </button>
+              <button type="button" className="intake-copy-btn" onClick={handleReset}>
+                New Link
+              </button>
+            </div>
+          </div>
+
+          {/* Suggested message */}
+          <div className="intake-message-panel">
+            <p className="intake-message-panel__label">Suggested message to patient</p>
+            <p className="intake-message-text">{suggestedMessage}</p>
             <button
               type="button"
-              className={`intake-copy-btn${copied ? " intake-copy-btn--copied" : ""}`}
-              onClick={handleCopy}
+              className={`intake-copy-btn${copiedMsg ? " intake-copy-btn--copied" : ""}`}
+              onClick={handleCopyMessage}
             >
-              {copied ? "Copied ✓" : "Copy Link"}
-            </button>
-            <button type="button" className="intake-copy-btn" onClick={handleReset}>
-              New Link
+              {copiedMsg ? "Copied ✓" : "Copy Message"}
             </button>
           </div>
         </div>
@@ -165,13 +192,13 @@ function GenerateLinkPanel({ user }) {
 }
 
 // ─────────────────────────────────────────────
-// Recent Intakes Panel — with lifecycle tabs
+// Recent Intakes Panel
 // ─────────────────────────────────────────────
 function RecentIntakes({ user }) {
   const [intakes, setIntakes] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [view, setView] = useState("active") // "active" | "reviewed"
+  const [error,   setError]   = useState("")
+  const [view,    setView]    = useState("active")
 
   useEffect(() => {
     async function fetchIntakes() {
@@ -198,7 +225,6 @@ function RecentIntakes({ user }) {
   async function handleMarkReviewed(id) {
     try {
       await updateDoc(doc(db, "pending_intakes", id), { status: "reviewed" })
-      // Optimistic update — move to reviewed in local state
       setIntakes((prev) =>
         prev.map((item) => item.id === id ? { ...item, status: "reviewed" } : item)
       )
@@ -211,11 +237,9 @@ function RecentIntakes({ user }) {
   async function handleDelete(id, token) {
     try {
       await deleteDoc(doc(db, "pending_intakes", id))
-      // Best-effort: also delete the token document
       deleteDoc(doc(db, "intakeTokens", token)).catch(
         (e) => console.warn("[SmartIntake] Token delete failed (non-fatal):", e?.code)
       )
-      // Remove from local state immediately
       setIntakes((prev) => prev.filter((item) => item.id !== id))
     } catch (err) {
       console.error("[SmartIntake] Delete failed:", err)
@@ -224,26 +248,19 @@ function RecentIntakes({ user }) {
   }
 
   if (loading) return <p className="intake-loading">Loading recent intakes…</p>
-  if (error) return <p className="intake-error">{error}</p>
+  if (error)   return <p className="intake-error">{error}</p>
 
-  const activeIntakes = (intakes ?? []).filter(
-    (i) => i.status === "completed" || !i.status
-  )
-  const reviewedIntakes = (intakes ?? []).filter(
-    (i) => i.status === "reviewed"
-  )
-  const displayed = view === "active" ? activeIntakes : reviewedIntakes
+  const activeIntakes   = (intakes ?? []).filter((i) => i.status === "completed" || !i.status)
+  const reviewedIntakes = (intakes ?? []).filter((i) => i.status === "reviewed")
+  const displayed       = view === "active" ? activeIntakes : reviewedIntakes
 
   return (
     <div className="recent-intakes">
       <h2>Recent Intakes</h2>
 
-      {/* View tabs */}
       <div className="intake-view-tabs" role="tablist">
         <button
-          type="button"
-          role="tab"
-          aria-selected={view === "active"}
+          type="button" role="tab" aria-selected={view === "active"}
           className={`intake-view-tab${view === "active" ? " intake-view-tab--active" : ""}`}
           onClick={() => setView("active")}
         >
@@ -253,9 +270,7 @@ function RecentIntakes({ user }) {
           )}
         </button>
         <button
-          type="button"
-          role="tab"
-          aria-selected={view === "reviewed"}
+          type="button" role="tab" aria-selected={view === "reviewed"}
           className={`intake-view-tab${view === "reviewed" ? " intake-view-tab--active" : ""}`}
           onClick={() => setView("reviewed")}
         >
@@ -297,6 +312,25 @@ function RecentIntakes({ user }) {
 // SmartIntakePage
 // ─────────────────────────────────────────────
 export default function SmartIntakePage({ user }) {
+  const [profile,       setProfile]       = useState(null)
+  const [profileLoaded, setProfileLoaded] = useState(false)
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const snap = await getDoc(doc(db, "clinicianProfiles", user.uid))
+        if (snap.exists()) setProfile(snap.data())
+      } catch (err) {
+        console.error("[SmartIntake] profile load:", err)
+      } finally {
+        setProfileLoaded(true)
+      }
+    }
+    loadProfile()
+  }, [user.uid])
+
+  const profileIsSet = profile?.clinicianName?.trim() || profile?.clinicName?.trim()
+
   return (
     <section className="placeholder-page">
       <div className="placeholder-copy">
@@ -308,7 +342,16 @@ export default function SmartIntakePage({ user }) {
           when you open the chart.
         </p>
       </div>
-      <GenerateLinkPanel user={user} />
+
+      {/* Gentle profile setup prompt */}
+      {profileLoaded && !profileIsSet && (
+        <div className="profile-setup-prompt" role="note">
+          Set your clinician and clinic name so patients recognise your intake links.{" "}
+          <Link to="/settings/profile">Set up profile →</Link>
+        </div>
+      )}
+
+      <GenerateLinkPanel user={user} profile={profile} />
       <RecentIntakes user={user} />
     </section>
   )

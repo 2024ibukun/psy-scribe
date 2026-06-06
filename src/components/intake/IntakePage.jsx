@@ -11,6 +11,7 @@ import {
 import { db } from "../../firebase"
 import PHQ9 from "../scales/PHQ9"
 import GAD7 from "../scales/GAD7"
+import ClinicIdentityBanner from "./ClinicIdentityBanner"
 
 // ─────────────────────────────────────────────
 // Intake form configuration — config-driven so
@@ -419,11 +420,13 @@ export default function IntakePage() {
   const [firstName, setFirstName] = useState("")
   const [formData,  setFormData]  = useState(null)
   const [phq9Result, setPhq9Result] = useState(null)
-  const [gad7Result, setGad7Result] = useState(null)
+  const [gad7Result,   setGad7Result]   = useState(null)
+  // Clinician profile — loaded after token validation, used for ClinicIdentityBanner
+  const [clinicProfile, setClinicProfile] = useState(null)
 
   const config = INTAKE_CONFIG.adult
 
-  // Step 1 — load and validate token
+  // Step 1 — load and validate token, then load clinician profile
   useEffect(() => {
     async function loadToken() {
       try {
@@ -441,6 +444,15 @@ export default function IntakePage() {
 
         setTokenData(data)
         setStep("verify")
+
+        // Load clinician profile — non-critical, best-effort
+        // Used to show clinic identity banner to the patient
+        try {
+          const profileSnap = await getDoc(doc(db, "clinicianProfiles", data.clinicianId))
+          if (profileSnap.exists()) setClinicProfile(profileSnap.data())
+        } catch {
+          // Non-critical — ClinicIdentityBanner gracefully falls back if null
+        }
       } catch {
         setStep("invalid")
       }
@@ -523,11 +535,20 @@ export default function IntakePage() {
     if (gad7Result) submitIntake(gad7Result)
   }
 
+  // Steps where the clinic identity banner should be visible
+  const SHOW_BANNER_STEPS = ["verify","form","phq9","gad7","submitting","done","submit-error"]
+
   // ── Render ──
   return (
     <div className="intake-shell">
       <IntakeHeader />
       <div className="intake-body">
+
+        {/* Clinic identity — shown on all active steps so the patient
+            always knows whose intake they are completing */}
+        {SHOW_BANNER_STEPS.includes(step) && (
+          <ClinicIdentityBanner profile={clinicProfile} />
+        )}
 
         {step === "loading" && (
           <div className="intake-card" style={{ textAlign: "center", padding: "48px" }}>

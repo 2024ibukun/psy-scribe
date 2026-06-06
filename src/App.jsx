@@ -7,6 +7,7 @@ import AssessmentWorkspace from './components/assessments/AssessmentWorkspace'
 import AssessmentCard from './components/assessments/AssessmentCard'
 import IntakePage from './components/intake/IntakePage'
 import SmartIntakePage from './components/intake/SmartIntakePage'
+import ClinicianProfilePage from './components/clinician/ClinicianProfilePage'
 import './App.css'
 
 // ── Hero preview cards — real product data ──
@@ -148,6 +149,7 @@ function Header({ user }) {
           items={[
             { to: "/tools/assessments", label: "Assessments" },
             { to: "/tools/intake", label: "Smart Intake" },
+            { to: "/settings/profile", label: "Profile" },
           ]}
         />
         <NavLink to="/documentation">Documentation</NavLink>
@@ -314,6 +316,7 @@ function AuthenticatedApp({ user }) {
           <Route path="/tools/assessments" element={<AssessmentsPage />} />
           <Route path="/tools/intake" element={<SmartIntakePage user={user} />} />
           <Route path="/documentation" element={<DocumentationPage />} />
+          <Route path="/settings/profile" element={<ClinicianProfilePage user={user} />} />
           {/* Legacy redirects — keep old URLs working */}
           <Route path="/psychometrics" element={<Navigate to="/tools/assessments" replace />} />
           <Route path="/templates" element={<Navigate to="/documentation" replace />} />
