@@ -19,12 +19,26 @@ function ShieldIcon() {
   )
 }
 
+/**
+ * AssessmentCard
+ *
+ * Props:
+ *   assessment          — object from assessments.js
+ *   onSendToPatient     — optional handler; shows Coming Soon toast if omitted
+ *   onSendToTeacher     — optional handler; shows Coming Soon toast if omitted
+ *   onCompleteInOffice  — optional handler; shows Coming Soon toast if omitted
+ *   onToast             — required toast callback
+ *   hideSendToPatient   — when true, hides the "Send to Patient" button
+ *   hideCompleteInOffice — when true, hides the "Complete in Office" button
+ */
 export default function AssessmentCard({
   assessment,
   onSendToPatient,
   onSendToTeacher,
   onCompleteInOffice,
   onToast,
+  hideSendToPatient = false,
+  hideCompleteInOffice = false,
 }) {
   function handleSendToPatient() {
     if (onSendToPatient) onSendToPatient(assessment)
@@ -38,6 +52,10 @@ export default function AssessmentCard({
     if (onCompleteInOffice) onCompleteInOffice(assessment)
     else onToast?.("Coming Soon")
   }
+
+  const showSendToPatient = !hideSendToPatient
+  const showSendToTeacher = assessment.hasTeacherForm === true
+  const showCompleteInOffice = !hideCompleteInOffice
 
   return (
     <article
@@ -61,27 +79,33 @@ export default function AssessmentCard({
       </div>
 
       <div className="assessment-card__actions">
-        <button
-          type="button"
-          className="assessment-action-btn"
-          onClick={handleSendToPatient}
-        >
-          Send to Patient
-        </button>
-        <button
-          type="button"
-          className="assessment-action-btn"
-          onClick={handleSendToTeacher}
-        >
-          Send to Teacher
-        </button>
-        <button
-          type="button"
-          className="assessment-action-btn assessment-action-btn--primary"
-          onClick={handleCompleteInOffice}
-        >
-          Complete in Office
-        </button>
+        {showCompleteInOffice && (
+          <button
+            type="button"
+            className="assessment-action-btn assessment-action-btn--primary"
+            onClick={handleCompleteInOffice}
+          >
+            Complete in Office
+          </button>
+        )}
+        {showSendToPatient && (
+          <button
+            type="button"
+            className="assessment-action-btn assessment-action-btn--outline"
+            onClick={handleSendToPatient}
+          >
+            Send to Patient
+          </button>
+        )}
+        {showSendToTeacher && (
+          <button
+            type="button"
+            className="assessment-action-btn assessment-action-btn--outline"
+            onClick={handleSendToTeacher}
+          >
+            Send to Teacher/Parent
+          </button>
+        )}
       </div>
     </article>
   )

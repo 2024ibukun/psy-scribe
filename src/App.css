@@ -496,8 +496,15 @@
     grid-template-columns: 1fr;
     padding-top: 44px;
   }
-  .product-preview {
-    max-width: 720px;
+  .hero-preview {
+    max-width: 600px;
+  }
+  .hero-preview__cards {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .hero-preview__cards .assessment-card {
+    flex: 1 1 260px;
   }
   .feature-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -931,6 +938,65 @@
 
 .assessment-search__clear:hover { color: var(--ink); }
 
+/* ── Hero proof list ── */
+.hero-proof-list {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.hero-proof-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 1.02rem;
+  color: var(--ink);
+  font-weight: 550;
+  line-height: 1.4;
+}
+
+.hero-proof-arrow {
+  color: var(--primary);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.hero-descriptor {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* ── Hero preview (three AssessmentCard previews) ── */
+.hero-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.hero-preview__label {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.hero-preview__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* In the hero preview, keep cards compact */
+.hero-preview .assessment-card {
+  box-shadow: 0 2px 12px rgba(10, 108, 116, 0.08);
+}
+
 /* ── Assessment Grid ── */
 .assessment-grid {
   display: grid;
@@ -1020,29 +1086,38 @@
   gap: 7px;
 }
 
+/* Base button — secondary/outlined */
 .assessment-action-btn {
   width: 100%;
   padding: 8px 12px;
   border-radius: 7px;
   font-size: 0.82rem;
   font-weight: 650;
-  color: var(--primary-dark);
-  background: #eaf5f3;
-  transition: background 150ms;
   text-align: center;
+  transition: background 150ms, border-color 150ms;
 }
 
-.assessment-action-btn:hover {
-  background: #d4ecea;
-}
-
+/* PRIMARY: Complete in Office */
 .assessment-action-btn--primary {
   color: white;
-  background: var(--primary);
+  background: #0A6C74;
+  border: 1px solid #0A6C74;
 }
 
 .assessment-action-btn--primary:hover {
-  background: var(--primary-dark);
+  background: #085960;
+  border-color: #085960;
+}
+
+/* SECONDARY/OUTLINE: Send to Patient, Send to Teacher/Parent */
+.assessment-action-btn--outline {
+  color: #0A6C74;
+  background: transparent;
+  border: 1px solid #0A6C74;
+}
+
+.assessment-action-btn--outline:hover {
+  background: #eaf5f3;
 }
 
 /* ── Accordion ── */

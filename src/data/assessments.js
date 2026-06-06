@@ -10,6 +10,7 @@ export const assessments = [
     section: "adult",
     status: "active",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: true, pediatric: false },
   },
   {
@@ -22,6 +23,7 @@ export const assessments = [
     section: "adult",
     status: "active",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: true, pediatric: false },
   },
   {
@@ -34,6 +36,7 @@ export const assessments = [
     section: "adult",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: true, pediatric: false },
   },
   {
@@ -46,6 +49,7 @@ export const assessments = [
     section: "adult",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
   {
@@ -58,6 +62,7 @@ export const assessments = [
     section: "adult",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
   {
@@ -70,18 +75,20 @@ export const assessments = [
     section: "adult",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
   {
     id: "spravato",
     name: "Spravato Session Monitor",
     fullName: "Esketamine REMS Session Tracker",
-    description: "Track dissociation, depression, and blood pressure at each Spravato administration",
+    description: "Track dissociation, depression, and blood pressure at each Spravato administration session",
     category: ["adult"],
     ageMode: ["adult"],
     section: "adult",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
   {
@@ -94,6 +101,7 @@ export const assessments = [
     section: "adult",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
 
@@ -108,6 +116,7 @@ export const assessments = [
     section: "child",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: true,
     featured: { adult: false, pediatric: true },
   },
   {
@@ -120,6 +129,7 @@ export const assessments = [
     section: "child",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: true,
     featured: { adult: false, pediatric: false },
   },
   {
@@ -132,6 +142,7 @@ export const assessments = [
     section: "child",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: true,
     featured: { adult: false, pediatric: true },
   },
   {
@@ -144,6 +155,7 @@ export const assessments = [
     section: "child",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: true,
     featured: { adult: false, pediatric: true },
   },
   {
@@ -156,6 +168,7 @@ export const assessments = [
     section: "child",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: true,
     featured: { adult: false, pediatric: true },
   },
   // CRAFFT appears in both Child and Substance Use sections — deliberate clinical decision
@@ -169,6 +182,7 @@ export const assessments = [
     section: ["child", "substance"],
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: true,
     featured: { adult: false, pediatric: true },
   },
 
@@ -183,6 +197,7 @@ export const assessments = [
     section: "mood",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: true, pediatric: false },
   },
   {
@@ -195,6 +210,7 @@ export const assessments = [
     section: "mood",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
   {
@@ -207,6 +223,7 @@ export const assessments = [
     section: "mood",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
   {
@@ -219,6 +236,7 @@ export const assessments = [
     section: "mood",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
 
@@ -233,6 +251,7 @@ export const assessments = [
     section: "substance",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: true, pediatric: false },
   },
   {
@@ -245,6 +264,7 @@ export const assessments = [
     section: "substance",
     status: "coming-soon",
     isSafety: true,
+    hasTeacherForm: false,
     featured: { adult: true, pediatric: true },
   },
 
@@ -259,6 +279,7 @@ export const assessments = [
     section: "neuro",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
   {
@@ -271,6 +292,7 @@ export const assessments = [
     section: "neuro",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
   {
@@ -283,6 +305,7 @@ export const assessments = [
     section: "neuro",
     status: "coming-soon",
     isSafety: false,
+    hasTeacherForm: false,
     featured: { adult: false, pediatric: false },
   },
 ]

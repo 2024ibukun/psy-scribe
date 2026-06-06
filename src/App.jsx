@@ -4,13 +4,57 @@ import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './firebase'
 import Login from './components/Login'
 import AssessmentWorkspace from './components/assessments/AssessmentWorkspace'
+import AssessmentCard from './components/assessments/AssessmentCard'
 import './App.css'
 
+// ── Hero preview cards — real product data, no fake patient content ──
+const HERO_CARDS = [
+  {
+    id: "phq9-preview",
+    name: "PHQ-9",
+    fullName: "Patient Health Questionnaire-9",
+    description: "Depression severity screening",
+    status: "active",
+    isSafety: false,
+    hasTeacherForm: false,
+  },
+  {
+    id: "vanderbilt-preview",
+    name: "Vanderbilt",
+    fullName: "Vanderbilt ADHD Rating Scale",
+    description: "Send to teacher in 60 seconds",
+    status: "coming-soon",
+    isSafety: false,
+    hasTeacherForm: true,
+  },
+  {
+    id: "cssrs-preview",
+    name: "C-SSRS",
+    fullName: "Columbia Suicide Severity Rating Scale",
+    description: "Suicide risk — safety instrument",
+    status: "coming-soon",
+    isSafety: true,
+    hasTeacherForm: false,
+  },
+]
+
 const features = [
-  { title: 'Psychiatry-aware assessments', description: 'Administer validated psychometric tools with psychiatric history, MSE, risk assessment, diagnosis, and plan sections already in mind.' },
-  { title: 'Measurement-based care', description: 'Keep PHQ-9, GAD-7, PCL-5, AUDIT-C, and other common scales close to the encounter workflow.' },
-  { title: 'Clinician review first', description: 'AI output is treated as a draft so the clinician remains responsible for review, edits, and final sign-off.' },
-  { title: 'Privacy-minded foundation', description: 'Designed with encryption, access controls, audit trails, and HIPAA-ready workflows as product requirements.' },
+  {
+    title: 'Send scales instantly',
+    description: 'Send PHQ-9 to a patient, Vanderbilt to a teacher, or CRAFFT to a parent — directly from PsychMetric. No paper. No fax. No follow-up calls.',
+  },
+  {
+    title: 'Scores before the visit',
+    description: 'Patient completes PHQ-9 or GAD-7 in the waiting room. Score and severity appear on your dashboard before they enter the room.',
+  },
+  {
+    title: 'Spravato and ketamine tracking',
+    description: 'Track dissociation, mood, and vitals at every Spravato and ketamine session. Built with REMS documentation in mind.',
+  },
+  {
+    title: 'Clinician review always',
+    description: 'Every score is a starting point, not a conclusion. PsychMetric surfaces the data. You make the clinical decision.',
+  },
 ]
 
 const metrics = [
@@ -54,32 +98,43 @@ function Header({ user }) {
   )
 }
 
-function ProductPreview() {
+function HeroPreview() {
+  const [toast, setToast] = useState(null)
+
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 2500)
+    return () => clearTimeout(t)
+  }, [toast])
+
   return (
-    <div className="product-preview" aria-label="PsychMetric clinical assessment preview">
-      <div className="demo-badge">Demo preview</div>
-      <div className="preview-toolbar"><span /><span /><span /></div>
-      <div className="preview-grid">
-        <section className="note-panel">
-          <p className="panel-label">Assessment</p>
-          <h3>Follow-up psychiatry visit</h3>
-          <div className="note-line wide" />
-          <div className="note-line" />
-          <div className="note-block">
-            <strong>Mental Status Exam</strong>
-            <p>Cooperative, linear thought process, mood anxious, insight fair.</p>
-          </div>
-          <div className="note-block muted-block">
-            <strong>Plan</strong>
-            <p>Review medication response, sleep hygiene, therapy goals, and safety plan.</p>
-          </div>
-        </section>
-        <aside className="score-panel">
-          <p className="panel-label">Measures</p>
-          <div className="score-row"><span>PHQ-9</span><strong>11</strong></div>
-          <div className="score-row"><span>GAD-7</span><strong>8</strong></div>
-          <div className="risk-card"><span>Risk review</span><strong>Needs clinician check</strong></div>
-        </aside>
+    <div className="hero-preview">
+      {toast && (
+        <div className="workspace-toast" role="status" aria-live="polite">
+          {toast} — this feature is coming soon.
+        </div>
+      )}
+      <p className="hero-preview__label">Clinical Assessment Workspace — Preview</p>
+      <div className="hero-preview__cards">
+        {/* PHQ-9: Complete in Office only */}
+        <AssessmentCard
+          assessment={HERO_CARDS[0]}
+          hideSendToPatient={true}
+          onToast={setToast}
+        />
+        {/* Vanderbilt: Send to Teacher/Parent only */}
+        <AssessmentCard
+          assessment={HERO_CARDS[1]}
+          hideSendToPatient={true}
+          hideCompleteInOffice={true}
+          onToast={setToast}
+        />
+        {/* C-SSRS: Complete in Office only, safety styling */}
+        <AssessmentCard
+          assessment={HERO_CARDS[2]}
+          hideSendToPatient={true}
+          onToast={setToast}
+        />
       </div>
     </div>
   )
@@ -90,10 +145,12 @@ function IScribeBanner() {
     <section className="iscribe-banner" aria-label="iScribe AI Documentation">
       <div className="iscribe-banner__inner">
         <div className="iscribe-banner__text">
-          <span className="iscribe-banner__badge">Coming in Phase 5</span>
-          <h2 className="iscribe-banner__title">iScribe AI Documentation</h2>
+          <span className="iscribe-banner__badge">Coming Next — iScribe</span>
+          <h2 className="iscribe-banner__title">Notes that know your patient.</h2>
           <p className="iscribe-banner__subtitle">
-            Dictate your psychiatric note. iScribe structures it into a complete SOAP note ready for your EMR.
+            When your PHQ-9, Vanderbilt, and C-SSRS are already in PsychMetric, your note has context
+            before you dictate a word. iScribe uses your assessment data to generate a structured
+            psychiatric SOAP note — not a generic transcript, but a note that already knows the scores.
           </p>
         </div>
       </div>
@@ -106,11 +163,14 @@ function HomePage() {
     <>
       <section className="hero-section">
         <div className="hero-copy">
-          <p className="eyebrow">AI-powered clinical assessment platform</p>
-          <h1>Psychometric assessments for modern mental health care.</h1>
-          <p className="hero-text">
-            PsychMetric helps psychiatry teams administer validated scales, track rating scores, and organize clinical assessments in one clean workspace.
-          </p>
+          <p className="eyebrow">Clinician-built. Psychiatry-focused.</p>
+          <h1>Psychiatric assessments built around how psychiatrists actually work.</h1>
+          <ul className="hero-proof-list">
+            <li><span className="hero-proof-arrow">→</span> Send the Vanderbilt to a teacher in 60 seconds</li>
+            <li><span className="hero-proof-arrow">→</span> PHQ-9 scored before the patient enters the room</li>
+            <li><span className="hero-proof-arrow">→</span> Spravato sessions tracked for REMS compliance</li>
+          </ul>
+          <p className="hero-descriptor">Psychometric assessments for modern mental health care.</p>
           <div className="hero-actions">
             <Link className="primary-button" to="/templates">Explore templates</Link>
             <Link className="secondary-button" to="/psychometrics">View psychometrics</Link>
@@ -119,7 +179,7 @@ function HomePage() {
             Built with HIPAA-ready design priorities. Formal compliance depends on deployment, policies, agreements, and operational controls.
           </p>
         </div>
-        <ProductPreview />
+        <HeroPreview />
       </section>
       <section className="metrics-band" aria-label="Product snapshot">
         {metrics.map((metric) => (
@@ -132,8 +192,11 @@ function HomePage() {
       <section className="features-section" id="features">
         <div className="section-heading">
           <p className="eyebrow">Core workflow</p>
-          <h2>Simple tools for psychiatric encounters.</h2>
-          <p>The first version focuses on the foundation: assessments, templates, measures, and clinician-controlled review.</p>
+          <h2>Built for psychiatric workflows.</h2>
+          <p>
+            The first version focuses on assessment delivery, scoring, and clinician-controlled
+            review — built by a clinician who uses these tools daily.
+          </p>
         </div>
         <div className="feature-grid">
           {features.map((feature) => (
@@ -203,7 +266,7 @@ function App() {
     return (
       <div className="app-shell auth-loading" aria-label="Loading">
         <span className="logo-wrap">
-          <img src="/logo.png" alt="PsychMetric" className="brand-logo loading-logo" />
+          <img src="/logo.png" alt="PsychMetric" className="loading-logo" />
         </span>
       </div>
     )
@@ -223,7 +286,7 @@ function App() {
       </main>
       <footer className="site-footer">
         <span>PsychMetric</span>
-        <span>AI-powered psychometric assessments for psychiatry.</span>
+        <span>Clinician-built. Psychiatry-focused.</span>
       </footer>
     </div>
   )
