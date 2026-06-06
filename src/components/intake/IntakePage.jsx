@@ -13,21 +13,75 @@ import PHQ9 from "../scales/PHQ9"
 import GAD7 from "../scales/GAD7"
 
 // ─────────────────────────────────────────────
-// Intake form configuration
-// Structured so a pediatric version can be added
-// in a later phase without rebuilding this page.
-// Pediatric will need: guardian name, relationship,
-// who completed the form, school name, grade.
+// Intake form configuration — config-driven so
+// a pediatric version (guardian fields, school,
+// developmental history) can be added in Phase 4
+// without rebuilding the renderer.
+//
+// Field types: text | date | tel | email | textarea | chips
+// chips fields have an options array; options with
+// freeText: true show a free-text input when selected.
 // ─────────────────────────────────────────────
 const INTAKE_CONFIG = {
   adult: {
     type: "adult",
     patientFields: [
-      { id: "fullName", label: "Full Name", type: "text", required: true },
-      { id: "dob", label: "Date of Birth", type: "date", required: true, readOnly: true },
+      { id: "fullName",      label: "Full Name",             type: "text",  required: true },
+      { id: "dob",           label: "Date of Birth",         type: "date",  required: true, readOnly: true },
       { id: "preferredName", label: "Preferred Name (Optional)", type: "text" },
-      { id: "phone", label: "Phone Number", type: "tel" },
-      { id: "email", label: "Email Address", type: "email" },
+      { id: "phone",         label: "Phone Number",          type: "tel" },
+      { id: "email",         label: "Email Address",         type: "email" },
+      {
+        id: "genderIdentity",
+        label: "Gender identity (optional)",
+        type: "chips",
+        required: false,
+        options: [
+          { label: "Woman",                    value: "Woman" },
+          { label: "Man",                      value: "Man" },
+          { label: "Non-binary",               value: "Non-binary" },
+          { label: "Prefer to self-describe",  value: "_self", freeText: true },
+          { label: "Prefer not to say",        value: "Prefer not to say" },
+        ],
+      },
+      {
+        id: "pronouns",
+        label: "Pronouns (optional)",
+        type: "chips",
+        required: false,
+        options: [
+          { label: "she/her",         value: "she/her" },
+          { label: "he/him",          value: "he/him" },
+          { label: "they/them",       value: "they/them" },
+          { label: "Other",           value: "_other", freeText: true },
+          { label: "Prefer not to say", value: "Prefer not to say" },
+        ],
+      },
+      {
+        id: "allergies",
+        label: "Allergies (medications, food, other)",
+        type: "text",
+        required: true,
+        placeholder: "e.g. Penicillin, shellfish — or enter: None known",
+        helper: 'Enter "None known" if you have no known allergies.',
+        errorMessage: 'Please list your allergies, or enter "None known".',
+      },
+      {
+        id: "emergencyContactName",
+        label: "Emergency contact name",
+        type: "text",
+        required: true,
+        placeholder: "Full name",
+        errorMessage: "Please enter an emergency contact name.",
+      },
+      {
+        id: "emergencyContactPhone",
+        label: "Emergency contact phone",
+        type: "tel",
+        required: true,
+        placeholder: "Phone number",
+        errorMessage: "Please enter an emergency contact phone number.",
+      },
     ],
     clinicalFields: [
       {
@@ -35,6 +89,12 @@ const INTAKE_CONFIG = {
         label: "Chief Complaint",
         type: "text",
         placeholder: "What brings you in today?",
+      },
+      {
+        id: "treatmentGoals",
+        label: "What are you hoping to get help with? (optional)",
+        type: "textarea",
+        placeholder: "Describe what you would like to work on.",
       },
       {
         id: "currentConcerns",
@@ -60,14 +120,22 @@ const INTAKE_CONFIG = {
         type: "textarea",
         placeholder: "List any previous inpatient or partial hospitalizations.",
       },
+      {
+        id: "pharmacy",
+        label: "Preferred pharmacy (optional)",
+        type: "text",
+        placeholder: "Name and location or address",
+      },
     ],
     scales: ["phq9", "gad7"],
   },
   // pediatric: { ... } — Phase 4
+  // Will add: guardianName, guardianRelationship, whoCompletedForm,
+  // schoolName, grade, developmentalHistory
 }
 
 // ─────────────────────────────────────────────
-// Steps: loading → expired | invalid | already-done | verify → form → phq9 → gad7 → submitting → done
+// Steps
 // ─────────────────────────────────────────────
 
 function IntakeHeader() {
@@ -86,8 +154,7 @@ function StepVerify({ tokenData, onVerified }) {
   function handleVerify(e) {
     e.preventDefault()
     if (dobInput === tokenData.dob) {
-      const firstName = tokenData.patientName.trim().split(" ")[0]
-      onVerified(firstName)
+      onVerified(tokenData.patientName.trim().split(" ")[0])
     } else {
       setError("That date of birth does not match our records. Please try again.")
     }
@@ -121,11 +188,15 @@ function StepVerify({ tokenData, onVerified }) {
   )
 }
 
+// ─────────────────────────────────────────────
+// StepForm — renders config-driven fields
+// ─────────────────────────────────────────────
 function StepForm({ tokenData, firstName, config, onComplete }) {
+  // Initialise patient state from config
   const initPatient = Object.fromEntries(
     config.patientFields.map((f) => {
       if (f.id === "fullName") return [f.id, tokenData.patientName]
-      if (f.id === "dob") return [f.id, tokenData.dob]
+      if (f.id === "dob")      return [f.id, tokenData.dob]
       return [f.id, ""]
     })
   )
@@ -133,58 +204,174 @@ function StepForm({ tokenData, firstName, config, onComplete }) {
     config.clinicalFields.map((f) => [f.id, ""])
   )
 
-  const [patient, setPatient] = useState(initPatient)
-  const [clinical, setClinical] = useState(initClinical)
+  const [patient,   setPatientState]   = useState(initPatient)
+  const [clinical,  setClinicalState]  = useState(initClinical)
+  // chipSelections tracks WHICH chip button is visually active (separate from
+  // the stored value, because free-text chips need a marker key like "_self")
+  const [chipSelections, setChipSelections] = useState({})
+  // Inline validation errors — only for required fields
+  const [fieldErrors,    setFieldErrors]    = useState({})
 
   function setPatientField(id, value) {
-    setPatient((prev) => ({ ...prev, [id]: value }))
+    setPatientState((prev) => ({ ...prev, [id]: value }))
   }
   function setClinicalField(id, value) {
-    setClinical((prev) => ({ ...prev, [id]: value }))
+    setClinicalState((prev) => ({ ...prev, [id]: value }))
+  }
+
+  // Chip interaction: track visual selection + update stored value
+  function handleChipSelect(fieldId, opt, setter) {
+    setChipSelections((prev) => ({ ...prev, [fieldId]: opt.value }))
+    if (!opt.freeText) {
+      setter(fieldId, opt.value)
+    } else {
+      // For free-text chips, keep existing typed text (or empty)
+      // Value will be updated as user types in the free-text input
+    }
+    // Clear any existing error for this field
+    if (fieldErrors[fieldId]) {
+      setFieldErrors((prev) => { const e = { ...prev }; delete e[fieldId]; return e })
+    }
+  }
+
+  function handleChipFreeText(fieldId, text, setter) {
+    setter(fieldId, text)
+  }
+
+  // Validation: check all required fields across both sections
+  function validate() {
+    const allFields = [...config.patientFields, ...config.clinicalFields]
+    const allValues = { ...patient, ...clinical }
+    const errors = {}
+    allFields.forEach((f) => {
+      if (f.required && !f.readOnly) {
+        const val = allValues[f.id] ?? ""
+        if (!val.trim()) {
+          errors[f.id] = f.errorMessage || "This field is required."
+        }
+      }
+    })
+    return errors
   }
 
   function handleSubmit(e) {
     e.preventDefault()
+    const errors = validate()
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      // Scroll to the first error field
+      const firstErrorId = Object.keys(errors)[0]
+      document.getElementById(firstErrorId)?.scrollIntoView({ behavior: "smooth", block: "center" })
+      return
+    }
+    setFieldErrors({})
     onComplete({ ...patient, ...clinical })
   }
 
-  function renderField(field, value, onChange) {
-    if (field.type === "textarea") {
-      return (
-        <textarea
-          id={field.id}
-          className="intake-textarea"
-          value={value}
-          onChange={(e) => onChange(field.id, e.target.value)}
-          placeholder={field.placeholder || ""}
-          rows={3}
-        />
-      )
-    }
+  // ── Field renderers ────────────────────────
+  function renderChipsField(field, value, setter) {
+    const selectedChipValue = chipSelections[field.id] ?? null
+    const selectedOpt = field.options.find((o) => o.value === selectedChipValue)
+    const showFreeText = selectedOpt?.freeText === true
+
     return (
-      <input
-        id={field.id}
-        type={field.type}
-        className="intake-input"
-        value={value}
-        onChange={(e) => onChange(field.id, e.target.value)}
-        placeholder={field.placeholder || ""}
-        readOnly={field.readOnly || false}
-        required={field.required || false}
-      />
+      <div className="intake-chips-field">
+        <div className="intake-chips" role="group" aria-label={field.label}>
+          {field.options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              className={`intake-chip${selectedChipValue === opt.value ? " intake-chip--selected" : ""}`}
+              aria-pressed={selectedChipValue === opt.value}
+              onClick={() => handleChipSelect(field.id, opt, setter)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {showFreeText && (
+          <input
+            type="text"
+            className="intake-input"
+            style={{ marginTop: "10px" }}
+            placeholder="Please describe…"
+            value={value}
+            onChange={(e) => handleChipFreeText(field.id, e.target.value, setter)}
+            autoFocus
+          />
+        )}
+      </div>
     )
   }
+
+  function renderField(field, value, setter) {
+    switch (field.type) {
+      case "chips":
+        return renderChipsField(field, value, setter)
+      case "textarea":
+        return (
+          <textarea
+            id={field.id}
+            className={`intake-textarea${fieldErrors[field.id] ? " intake-input--error" : ""}`}
+            value={value}
+            onChange={(e) => {
+              setter(field.id, e.target.value)
+              if (fieldErrors[field.id]) setFieldErrors((p) => { const e = { ...p }; delete e[field.id]; return e })
+            }}
+            placeholder={field.placeholder || ""}
+            rows={3}
+          />
+        )
+      default:
+        return (
+          <input
+            id={field.id}
+            type={field.type}
+            className={`intake-input${fieldErrors[field.id] ? " intake-input--error" : ""}`}
+            value={value}
+            onChange={(e) => {
+              setter(field.id, e.target.value)
+              if (fieldErrors[field.id]) setFieldErrors((p) => { const e = { ...p }; delete e[field.id]; return e })
+            }}
+            placeholder={field.placeholder || ""}
+            readOnly={field.readOnly || false}
+            required={field.required || false}
+          />
+        )
+    }
+  }
+
+  function renderFieldBlock(field, valueMap, setter) {
+    const value = valueMap[field.id] ?? ""
+    const hasError = Boolean(fieldErrors[field.id])
+    return (
+      <div className="intake-field" key={field.id}>
+        <label className="intake-label" htmlFor={field.id}>
+          {field.label}
+          {field.required && !field.readOnly && (
+            <span className="intake-label-required" aria-hidden="true"> *</span>
+          )}
+        </label>
+        {renderField(field, value, setter)}
+        {field.helper && !hasError && (
+          <p className="intake-field-helper">{field.helper}</p>
+        )}
+        {hasError && (
+          <p className="intake-field-error" role="alert">{fieldErrors[field.id]}</p>
+        )}
+      </div>
+    )
+  }
+
+  const hasErrors = Object.keys(fieldErrors).length > 0
 
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div className="intake-card">
         <h2 className="intake-section-title">Patient Information</h2>
-        {config.patientFields.map((field) => (
-          <div className="intake-field" key={field.id}>
-            <label className="intake-label" htmlFor={field.id}>{field.label}</label>
-            {renderField(field, patient[field.id], setPatientField)}
-          </div>
-        ))}
+        {config.patientFields.map((field) =>
+          renderFieldBlock(field, patient, setPatientField)
+        )}
       </div>
 
       <div className="intake-card">
@@ -192,13 +379,16 @@ function StepForm({ tokenData, firstName, config, onComplete }) {
         <p className="intake-subtitle" style={{ marginTop: 0, marginBottom: "20px" }}>
           Your answers help your clinician prepare for your visit.
         </p>
-        {config.clinicalFields.map((field) => (
-          <div className="intake-field" key={field.id}>
-            <label className="intake-label" htmlFor={field.id}>{field.label}</label>
-            {renderField(field, clinical[field.id], setClinicalField)}
-          </div>
-        ))}
+        {config.clinicalFields.map((field) =>
+          renderFieldBlock(field, clinical, setClinicalField)
+        )}
       </div>
+
+      {hasErrors && (
+        <p className="intake-error" role="alert" style={{ marginBottom: "12px" }}>
+          Please complete the required fields marked above before continuing.
+        </p>
+      )}
 
       <button type="submit" className="intake-primary-btn">
         Continue to Questionnaires →
@@ -211,9 +401,7 @@ function StepDone() {
   return (
     <div className="intake-card intake-done">
       <div className="intake-done-check" aria-hidden="true">✓</div>
-      <h2 className="intake-title" style={{ marginBottom: "10px" }}>
-        Thank you.
-      </h2>
+      <h2 className="intake-title" style={{ marginBottom: "10px" }}>Thank you.</h2>
       <p className="intake-subtitle">
         Your information has been sent to your clinician. You may close this page.
       </p>
@@ -226,12 +414,11 @@ function StepDone() {
 // ─────────────────────────────────────────────
 export default function IntakePage() {
   const { token } = useParams()
-  const [step, setStep] = useState("loading")
+  const [step,      setStep]      = useState("loading")
   const [tokenData, setTokenData] = useState(null)
   const [firstName, setFirstName] = useState("")
-  const [formData, setFormData] = useState(null)
+  const [formData,  setFormData]  = useState(null)
   const [phq9Result, setPhq9Result] = useState(null)
-  // Preserved in state so the retry button can re-submit without losing data
   const [gad7Result, setGad7Result] = useState(null)
 
   const config = INTAKE_CONFIG.adult
@@ -241,26 +428,16 @@ export default function IntakePage() {
     async function loadToken() {
       try {
         const snap = await getDoc(doc(db, "intakeTokens", token))
-        if (!snap.exists()) {
-          setStep("invalid")
-          return
-        }
+        if (!snap.exists()) { setStep("invalid"); return }
+
         const data = snap.data()
 
-        // Check expiration — expiresAt is a Firestore Timestamp
         if (data.expiresAt) {
           const expiry = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt)
-          if (expiry < new Date()) {
-            setStep("expired")
-            return
-          }
+          if (expiry < new Date()) { setStep("expired"); return }
         }
 
-        // One-time use — already submitted
-        if (data.status === "completed") {
-          setStep("already-done")
-          return
-        }
+        if (data.status === "completed") { setStep("already-done"); return }
 
         setTokenData(data)
         setStep("verify")
@@ -271,64 +448,68 @@ export default function IntakePage() {
     loadToken()
   }, [token])
 
-  function handleVerified(first) {
-    setFirstName(first)
-    setStep("form")
-  }
-
-  function handleFormComplete(data) {
-    setFormData(data)
-    setStep("phq9")
-  }
-
-  function handlePHQ9Complete(result) {
-    setPhq9Result(result)
-    setStep("gad7")
-  }
+  function handleVerified(first)     { setFirstName(first); setStep("form") }
+  function handleFormComplete(data)  { setFormData(data);   setStep("phq9") }
+  function handlePHQ9Complete(result){ setPhq9Result(result); setStep("gad7") }
 
   // ─────────────────────────────────────────────
-  // Core submission — decoupled writes.
-  // addDoc to pending_intakes is the critical write.
-  // updateDoc to intakeTokens is best-effort cleanup
-  // (patient is unauthenticated; rules may block it).
+  // Core submission — addDoc is the critical write,
+  // updateDoc on intakeTokens is best-effort.
   // ─────────────────────────────────────────────
   const submitIntake = useCallback(async (gad7Data) => {
     setStep("submitting")
     try {
       await addDoc(collection(db, "pending_intakes"), {
+        // Token / ownership
         token,
         clinicianId: tokenData.clinicianId,
-        patientName: formData.fullName || tokenData.patientName,
-        dob: formData.dob || tokenData.dob,
+
+        // Patient identifiers
+        patientName:  formData.fullName || tokenData.patientName,
+        dob:          formData.dob      || tokenData.dob,
         preferredName: formData.preferredName || "",
-        phone: formData.phone || "",
-        email: formData.email || "",
-        chiefComplaint: formData.chiefComplaint || "",
-        currentConcerns: formData.currentConcerns || "",
-        medications: formData.medications || "",
-        previousTreatment: formData.previousTreatment || "",
+        phone:         formData.phone         || "",
+        email:         formData.email         || "",
+
+        // Identity (optional)
+        genderIdentity: formData.genderIdentity || "",
+        pronouns:       formData.pronouns       || "",
+
+        // Safety / contact (required)
+        allergies:             formData.allergies             || "",
+        emergencyContactName:  formData.emergencyContactName  || "",
+        emergencyContactPhone: formData.emergencyContactPhone || "",
+
+        // Clinical
+        chiefComplaint:         formData.chiefComplaint         || "",
+        treatmentGoals:         formData.treatmentGoals         || "",
+        currentConcerns:        formData.currentConcerns        || "",
+        medications:            formData.medications            || "",
+        previousTreatment:      formData.previousTreatment      || "",
         previousHospitalizations: formData.previousHospitalizations || "",
+        pharmacy:               formData.pharmacy               || "",
+
+        // Scales
         phq9Responses: phq9Result.responses,
-        phq9Score: phq9Result.score,
-        phq9Severity: phq9Result.severity,
-        phq9Q9Flag: phq9Result.phq9Q9Flag,
+        phq9Score:     phq9Result.score,
+        phq9Severity:  phq9Result.severity,
+        phq9Q9Flag:    phq9Result.phq9Q9Flag,
         gad7Responses: gad7Data.responses,
-        gad7Score: gad7Data.score,
-        gad7Severity: gad7Data.severity,
-        status: "completed",          // intake lifecycle status
+        gad7Score:     gad7Data.score,
+        gad7Severity:  gad7Data.severity,
+
+        status:    "completed",
         createdAt: serverTimestamp(),
       })
 
-      // Best-effort token status update — do NOT await.
-      // Patient is unauthenticated; if rules block this, it is non-fatal.
+      // Best-effort token status update — patient is unauthenticated
       updateDoc(doc(db, "intakeTokens", token), { status: "completed" }).catch(
         (e) => console.warn("[IntakePage] Token status update failed (non-fatal):", e?.code)
       )
 
       setStep("done")
     } catch (err) {
-      const code = err?.code ?? "unknown"
-      console.error("[IntakePage] Submission failed:", code, err)
+      console.error("[IntakePage] Submission failed:", err?.code, err)
       setStep("submit-error")
     }
   }, [token, tokenData, formData, phq9Result])
@@ -403,20 +584,14 @@ export default function IntakePage() {
         {step === "phq9" && (
           <div className="intake-card">
             <p className="intake-step-label">Questionnaire 1 of 2</p>
-            <PHQ9
-              onComplete={handlePHQ9Complete}
-              continueLabel="Continue to GAD-7 →"
-            />
+            <PHQ9 onComplete={handlePHQ9Complete} continueLabel="Continue to GAD-7 →" />
           </div>
         )}
 
         {step === "gad7" && (
           <div className="intake-card">
             <p className="intake-step-label">Questionnaire 2 of 2</p>
-            <GAD7
-              onComplete={handleGAD7Complete}
-              continueLabel="Submit Intake →"
-            />
+            <GAD7 onComplete={handleGAD7Complete} continueLabel="Submit Intake →" />
           </div>
         )}
 
@@ -433,12 +608,7 @@ export default function IntakePage() {
               Your answers are saved. Please tap the button below to try again.
               Do not refresh this page.
             </p>
-            <button
-              type="button"
-              className="intake-primary-btn"
-              onClick={handleRetry}
-              style={{ marginTop: "8px" }}
-            >
+            <button type="button" className="intake-primary-btn" onClick={handleRetry} style={{ marginTop: "8px" }}>
               Try Again
             </button>
           </div>

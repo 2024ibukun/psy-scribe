@@ -7,31 +7,54 @@ function severityClass(severity) {
 }
 
 function generateSummary(intake) {
-  const lines = [
-    `Chief Complaint:`,
-    intake.chiefComplaint || "Not provided",
-    ``,
-    `History:`,
-    intake.currentConcerns || "Not provided",
-    ``,
-    `Current Medications:`,
-    intake.medications || "Not provided",
-    ``,
-    `Previous Treatment:`,
-    intake.previousTreatment || "Not provided",
-    ``,
-    `Previous Hospitalizations:`,
-    intake.previousHospitalizations || "Not provided",
-    ``,
-    `PHQ-9:`,
-    `${intake.phq9Score} - ${intake.phq9Severity}`,
-  ]
+  // Plain text only — no markdown, no formatting.
+  // Pastes cleanly into any EHR text field.
+  // Optional fields are omitted entirely when blank.
+  const push = (lines, label, value) => {
+    if (value && value.trim()) {
+      lines.push(`${label}:`, value.trim(), ``)
+    }
+  }
 
+  const lines = []
+
+  // Header
+  lines.push(`Patient: ${intake.patientName || "—"}`)
+  lines.push(`DOB: ${intake.dob || "—"}`)
+  if (intake.pronouns)       lines.push(`Pronouns: ${intake.pronouns}`)
+  if (intake.genderIdentity) lines.push(`Gender Identity: ${intake.genderIdentity}`)
+  lines.push(``)
+
+  push(lines, `Chief Complaint`,        intake.chiefComplaint)
+  push(lines, `Treatment Goals`,        intake.treatmentGoals)
+  push(lines, `History`,                intake.currentConcerns)
+  push(lines, `Current Medications`,    intake.medications)
+
+  // Allergies — always include (required field, but handle legacy records)
+  lines.push(`Allergies:`)
+  lines.push(intake.allergies || "Not provided")
+  lines.push(``)
+
+  push(lines, `Previous Treatment`,      intake.previousTreatment)
+  push(lines, `Previous Hospitalizations`, intake.previousHospitalizations)
+  push(lines, `Pharmacy`,                intake.pharmacy)
+
+  // Emergency contact — include if either field is present
+  if (intake.emergencyContactName || intake.emergencyContactPhone) {
+    lines.push(`Emergency Contact:`)
+    lines.push(`${intake.emergencyContactName || "—"} - ${intake.emergencyContactPhone || "—"}`)
+    lines.push(``)
+  }
+
+  // Scores
+  lines.push(`PHQ-9:`)
+  lines.push(`${intake.phq9Score} - ${intake.phq9Severity}`)
   if (intake.phq9Q9Flag) {
     lines.push(`Positive response to PHQ-9 self-harm screening item.`)
   }
-
-  lines.push(``, `GAD-7:`, `${intake.gad7Score} - ${intake.gad7Severity}`)
+  lines.push(``)
+  lines.push(`GAD-7:`)
+  lines.push(`${intake.gad7Score} - ${intake.gad7Severity}`)
 
   return lines.join("\n")
 }

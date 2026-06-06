@@ -1981,3 +1981,79 @@
 .intake-cancel-btn:hover {
   background: #f3f4f6;
 }
+
+/* ══════════════════════════════════════════
+   PHASE 3 STEP 3 — expanded form fields
+══════════════════════════════════════════ */
+
+/* Choice chips for gender identity and pronouns */
+.intake-chips-field {
+  width: 100%;
+}
+
+.intake-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.intake-chip {
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 150ms, background 150ms, color 150ms;
+  line-height: 1.3;
+}
+
+.intake-chip:hover:not(.intake-chip--selected) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #eaf5f3;
+}
+
+.intake-chip--selected {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+@media (max-width: 480px) {
+  .intake-chip {
+    padding: 9px 12px;
+    font-size: 0.82rem;
+  }
+}
+
+/* Required field asterisk */
+.intake-label-required {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+/* Helper text below field */
+.intake-field-helper {
+  margin: 5px 0 0;
+  font-size: 0.79rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Inline field-level validation error */
+.intake-field-error {
+  margin: 5px 0 0;
+  font-size: 0.82rem;
+  color: #b91c1c;
+  line-height: 1.4;
+}
+
+/* Error highlight on input border */
+.intake-input--error,
+.intake-textarea--error {
+  border-color: #fca5a5 !important;
+  background: #fef2f2 !important;
+}
