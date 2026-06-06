@@ -1827,15 +1827,13 @@
    PHASE 3 HARDENING — lifecycle styles
 ══════════════════════════════════════════ */
 
-/* Lifecycle disclaimer */
-.intake-lifecycle-note {
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: #fffbeb;
-  border: 1px solid #f0d97a;
-  color: #6b5000;
-  font-size: 0.83rem;
-  margin-bottom: 20px;
+/* Lifecycle footer note — quiet, below intake list */
+.intake-footer-note {
+  margin: 24px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: #6B7280;
+  font-size: 0.81rem;
   line-height: 1.5;
 }
 

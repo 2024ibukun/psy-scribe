@@ -238,12 +238,6 @@ function RecentIntakes({ user }) {
     <div className="recent-intakes">
       <h2>Recent Intakes</h2>
 
-      {/* Lifecycle disclaimer */}
-      <div className="intake-lifecycle-note" role="note">
-        <strong>Intakes are temporary.</strong> Copy the summary to your EMR, then mark reviewed
-        or delete. PsychMetric is not a medical record system.
-      </div>
-
       {/* View tabs */}
       <div className="intake-view-tabs" role="tablist">
         <button
@@ -290,6 +284,11 @@ function RecentIntakes({ user }) {
           ))}
         </div>
       )}
+
+      <p className="intake-footer-note">
+        Intakes are temporary. Copy the summary to your EMR, then mark reviewed or delete.
+        PsychMetric is not a medical record system.
+      </p>
     </div>
   )
 }
