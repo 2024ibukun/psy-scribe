@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react'
-import { Link, NavLink, Route, Routes } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './firebase'
 import Login from './components/Login'
 import AssessmentWorkspace from './components/assessments/AssessmentWorkspace'
 import AssessmentCard from './components/assessments/AssessmentCard'
+import IntakePage from './components/intake/IntakePage'
+import SmartIntakePage from './components/intake/SmartIntakePage'
 import './App.css'
 
-// ── Hero preview cards — real product data, no fake patient content ──
+// ── Hero preview cards — real product data ──
 const HERO_CARDS = [
   {
     id: "phq9-preview",
@@ -63,6 +65,65 @@ const metrics = [
   { value: '< 2 min', label: 'target draft turnaround' },
 ]
 
+// ── Nav dropdown ──
+function ChevronDown() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  )
+}
+
+function NavDropdown({ label, items }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const location = useLocation()
+  const isChildActive = items.some((item) => location.pathname.startsWith(item.to))
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [])
+
+  // Close on route change
+  useEffect(() => { setOpen(false) }, [location.pathname])
+
+  return (
+    <div className="nav-dropdown" ref={ref}>
+      <button
+        type="button"
+        className={`nav-dropdown__trigger${open || isChildActive ? ' nav-dropdown__trigger--active' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
+        {label}
+        <ChevronDown />
+      </button>
+      {open && (
+        <div className="nav-dropdown__menu" role="menu">
+          {items.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                'nav-dropdown__item' + (isActive ? ' active' : '')
+              }
+              role="menuitem"
+              onClick={() => setOpen(false)}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function UserAvatar({ email }) {
   const initial = email ? email[0].toUpperCase() : '?'
   return (
@@ -82,8 +143,14 @@ function Header({ user }) {
       </Link>
       <nav className="nav-links" aria-label="Primary navigation">
         <NavLink to="/" end>Home</NavLink>
-        <NavLink to="/psychometrics">Psychometric Tools</NavLink>
-        <NavLink to="/templates">Notes &amp; Templates</NavLink>
+        <NavDropdown
+          label="Tools"
+          items={[
+            { to: "/tools/assessments", label: "Assessments" },
+            { to: "/tools/intake", label: "Smart Intake" },
+          ]}
+        />
+        <NavLink to="/documentation">Documentation</NavLink>
       </nav>
       <div className="header-user">
         {user?.email && (
@@ -116,25 +183,9 @@ function HeroPreview() {
       )}
       <p className="hero-preview__label">Clinical Assessment Workspace — Preview</p>
       <div className="hero-preview__cards">
-        {/* PHQ-9: Complete in Office only */}
-        <AssessmentCard
-          assessment={HERO_CARDS[0]}
-          hideSendToPatient={true}
-          onToast={setToast}
-        />
-        {/* Vanderbilt: Send to Teacher/Parent only */}
-        <AssessmentCard
-          assessment={HERO_CARDS[1]}
-          hideSendToPatient={true}
-          hideCompleteInOffice={true}
-          onToast={setToast}
-        />
-        {/* C-SSRS: Complete in Office only, safety styling */}
-        <AssessmentCard
-          assessment={HERO_CARDS[2]}
-          hideSendToPatient={true}
-          onToast={setToast}
-        />
+        <AssessmentCard assessment={HERO_CARDS[0]} hideSendToPatient={true} onToast={setToast} />
+        <AssessmentCard assessment={HERO_CARDS[1]} hideSendToPatient={true} hideCompleteInOffice={true} onToast={setToast} />
+        <AssessmentCard assessment={HERO_CARDS[2]} hideSendToPatient={true} onToast={setToast} />
       </div>
     </div>
   )
@@ -142,7 +193,7 @@ function HeroPreview() {
 
 function IScribeBanner() {
   return (
-    <section className="iscribe-banner" aria-label="iScribe AI Documentation">
+    <section className="iscribe-banner" aria-label="Scribe — coming in Phase 5">
       <div className="iscribe-banner__inner">
         <div className="iscribe-banner__text">
           <span className="iscribe-banner__badge">Coming in Phase 5</span>
@@ -162,7 +213,7 @@ function HomePage() {
       <section className="hero-section">
         <div className="hero-copy">
           <p className="eyebrow">Clinician-built. Psychiatry-focused.</p>
-          <h1>Psychometric assessments for modern mental health care.</h1>
+          <h1>Measurement-based care for mental health.</h1>
           <ul className="hero-proof-list">
             <li><span className="hero-proof-arrow">→</span> Send the Vanderbilt to a teacher in 60 seconds</li>
             <li><span className="hero-proof-arrow">→</span> PHQ-9 scored before the patient enters the room</li>
@@ -170,8 +221,8 @@ function HomePage() {
           </ul>
           <p className="hero-descriptor">PsychMetric was built with the thought of how psychiatrists actually work.</p>
           <div className="hero-actions">
-            <Link className="primary-button" to="/templates">Explore templates</Link>
-            <Link className="secondary-button" to="/psychometrics">View psychometrics</Link>
+            <Link className="primary-button" to="/documentation">Explore templates</Link>
+            <Link className="secondary-button" to="/tools/assessments">View psychometrics</Link>
           </div>
           <p className="compliance-note">
             Built with HIPAA-ready design priorities. Formal compliance depends on deployment, policies, agreements, and operational controls.
@@ -211,7 +262,7 @@ function HomePage() {
   )
 }
 
-function PsychometricToolsPage() {
+function AssessmentsPage() {
   return (
     <section className="placeholder-page">
       <div className="placeholder-copy">
@@ -224,7 +275,7 @@ function PsychometricToolsPage() {
   )
 }
 
-function TemplatesPage() {
+function DocumentationPage() {
   const items = [
     { kicker: 'Coming in Phase 5', title: 'Initial psychiatric evaluation', description: 'Chief concern, HPI, psychiatric history, substance use, MSE, formulation, assessment, and plan.' },
     { kicker: 'Coming in Phase 5', title: 'Medication management follow-up', description: 'Symptoms, adverse effects, adherence, safety review, medication changes, and follow-up plan.' },
@@ -233,10 +284,10 @@ function TemplatesPage() {
   return (
     <section className="placeholder-page">
       <div className="placeholder-copy">
-        <p className="eyebrow">Notes and templates</p>
+        <p className="eyebrow">Documentation</p>
         <h1>Structured psychiatry note templates.</h1>
         <p className="templates-iscribe-subtitle">
-          Powered by iScribe AI — speak your note, we structure it. Coming in Phase 5.
+          Powered by Scribe — speak your note, we structure it. Coming in Phase 5.
         </p>
       </div>
       <div className="placeholder-list">
@@ -252,13 +303,48 @@ function TemplatesPage() {
   )
 }
 
-function App() {
-  const [user, setUser] = useState(undefined)
+// ── Root App ──
+function AuthenticatedApp({ user }) {
+  return (
+    <div className="app-shell">
+      <Header user={user} />
+      <main>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/tools/assessments" element={<AssessmentsPage />} />
+          <Route path="/tools/intake" element={<SmartIntakePage user={user} />} />
+          <Route path="/documentation" element={<DocumentationPage />} />
+          {/* Legacy redirects — keep old URLs working */}
+          <Route path="/psychometrics" element={<Navigate to="/tools/assessments" replace />} />
+          <Route path="/templates" element={<Navigate to="/documentation" replace />} />
+        </Routes>
+      </main>
+      <footer className="site-footer">
+        <span>PsychMetric</span>
+        <span>Clinician-built. Psychiatry-focused.</span>
+      </footer>
+    </div>
+  )
+}
 
+export default function App() {
+  const [user, setUser] = useState(undefined)
+  const location = useLocation()
+
+  // Auth listener — always called before any conditional return (Rules of Hooks)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u ?? null))
     return unsubscribe
   }, [])
+
+  // Public intake route — no auth required, no navbar, no clinician chrome
+  if (location.pathname.startsWith('/intake/')) {
+    return (
+      <Routes>
+        <Route path="/intake/:token" element={<IntakePage />} />
+      </Routes>
+    )
+  }
 
   if (user === undefined) {
     return (
@@ -272,22 +358,5 @@ function App() {
 
   if (!user) return <Login />
 
-  return (
-    <div className="app-shell">
-      <Header user={user} />
-      <main>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/psychometrics" element={<PsychometricToolsPage />} />
-          <Route path="/templates" element={<TemplatesPage />} />
-        </Routes>
-      </main>
-      <footer className="site-footer">
-        <span>PsychMetric</span>
-        <span>Clinician-built. Psychiatry-focused.</span>
-      </footer>
-    </div>
-  )
+  return <AuthenticatedApp user={user} />
 }
-
-export default App

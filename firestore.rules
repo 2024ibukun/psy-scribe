@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── intakeTokens ─────────────────────────────────────
+    // Created by authenticated clinicians.
+    // Readable by anyone who has the exact token document ID
+    // (the token string itself acts as the access control).
+    match /intakeTokens/{tokenId} {
+      allow read: if true;
+      allow create, update: if request.auth != null;
+      allow delete: if false;
+    }
+
+    // ── pending_intakes ───────────────────────────────────
+    // Written by the public patient intake flow (no auth).
+    // Readable only by the authenticated clinician whose uid
+    // matches the clinicianId stored in the document.
+    match /pending_intakes/{docId} {
+      allow create: if true;
+      allow read: if request.auth != null
+                  && resource.data.clinicianId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+  }
+}
