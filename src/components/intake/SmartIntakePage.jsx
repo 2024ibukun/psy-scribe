@@ -4,19 +4,26 @@ import {
   doc,
   setDoc,
   getDocs,
+  updateDoc,
+  deleteDoc,
   query,
   where,
   serverTimestamp,
+  Timestamp,
 } from "firebase/firestore"
 import { db } from "../../firebase"
 import IntakeCard from "./IntakeCard"
 
+const EXPIRY_DAYS = 14
+
 function generateToken() {
-  // pt_ + 8 random hex chars — unguessable, URL-safe
   const raw = crypto.randomUUID().replace(/-/g, "")
   return "pt_" + raw.slice(0, 8)
 }
 
+// ─────────────────────────────────────────────
+// Generate Link Panel
+// ─────────────────────────────────────────────
 function GenerateLinkPanel({ user }) {
   const [patientName, setPatientName] = useState("")
   const [dob, setDob] = useState("")
@@ -41,10 +48,10 @@ function GenerateLinkPanel({ user }) {
     setLoading(true)
     try {
       const token = generateToken()
+      const expiresAt = Timestamp.fromDate(
+        new Date(Date.now() + EXPIRY_DAYS * 24 * 60 * 60 * 1000)
+      )
 
-      // Race against a 12-second timeout so the button never hangs forever.
-      // Firestore hangs indefinitely (no error thrown) when the database has
-      // not been created yet in Firebase Console, or when rules are misconfigured.
       await Promise.race([
         setDoc(doc(db, "intakeTokens", token), {
           token,
@@ -53,6 +60,7 @@ function GenerateLinkPanel({ user }) {
           dob,
           status: "pending",
           createdAt: serverTimestamp(),
+          expiresAt,
         }),
         new Promise((_, reject) =>
           setTimeout(
@@ -62,28 +70,22 @@ function GenerateLinkPanel({ user }) {
         ),
       ])
 
-      const link = `${window.location.origin}/intake/${token}`
-      setGeneratedLink(link)
+      setGeneratedLink(`${window.location.origin}/intake/${token}`)
     } catch (err) {
       const code = err?.code ?? "unknown"
       console.error("[SmartIntake] setDoc error:", code, err)
-
       if (code === "TIMEOUT") {
         setError(
           "Firestore is not responding (timed out). " +
-          "The database may not be created yet — go to Firebase Console → " +
-          "Firestore Database and create the database, then publish the security rules."
+          "Go to Firebase Console → Firestore Database and ensure the database exists and rules are published."
         )
       } else if (code === "permission-denied") {
         setError(
           "Firestore permissions denied. " +
-          "The security rules need to be published in Firebase Console → " +
-          "Firestore Database → Rules tab."
+          "Publish the security rules in Firebase Console → Firestore Database → Rules tab."
         )
       } else {
-        setError(
-          `Write failed (${code}). Check the browser console (F12) for details.`
-        )
+        setError(`Write failed (${code}). Check the browser console (F12) for details.`)
       }
     } finally {
       setLoading(false)
@@ -108,7 +110,7 @@ function GenerateLinkPanel({ user }) {
       <h2>Prepare Intake Form</h2>
       <p className="intake-generate-desc">
         Generate a secure link for your patient to complete before their visit.
-        The link does not require a patient account.
+        Links expire after {EXPIRY_DAYS} days and can only be used once.
       </p>
 
       {!generatedLink ? (
@@ -136,17 +138,13 @@ function GenerateLinkPanel({ user }) {
             />
           </div>
           {error && <p className="intake-error">{error}</p>}
-          <button
-            type="submit"
-            className="intake-primary-btn"
-            disabled={loading}
-          >
+          <button type="submit" className="intake-primary-btn" disabled={loading}>
             {loading ? "Generating…" : "Generate Intake Link"}
           </button>
         </form>
       ) : (
         <div className="intake-generated-link">
-          <p>Intake link ready — share with your patient</p>
+          <p>Intake link ready — expires in {EXPIRY_DAYS} days</p>
           <p className="intake-link-text">{generatedLink}</p>
           <div style={{ display: "flex", gap: "8px" }}>
             <button
@@ -166,10 +164,14 @@ function GenerateLinkPanel({ user }) {
   )
 }
 
+// ─────────────────────────────────────────────
+// Recent Intakes Panel — with lifecycle tabs
+// ─────────────────────────────────────────────
 function RecentIntakes({ user }) {
   const [intakes, setIntakes] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [view, setView] = useState("active") // "active" | "reviewed"
 
   useEffect(() => {
     async function fetchIntakes() {
@@ -181,10 +183,7 @@ function RecentIntakes({ user }) {
         const snapshot = await getDocs(q)
         const data = snapshot.docs
           .map((d) => ({ id: d.id, ...d.data() }))
-          .sort(
-            (a, b) =>
-              (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
-          )
+          .sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0))
         setIntakes(data)
       } catch (err) {
         setError("Could not load recent intakes.")
@@ -196,20 +195,98 @@ function RecentIntakes({ user }) {
     fetchIntakes()
   }, [user.uid])
 
+  async function handleMarkReviewed(id) {
+    try {
+      await updateDoc(doc(db, "pending_intakes", id), { status: "reviewed" })
+      // Optimistic update — move to reviewed in local state
+      setIntakes((prev) =>
+        prev.map((item) => item.id === id ? { ...item, status: "reviewed" } : item)
+      )
+    } catch (err) {
+      console.error("[SmartIntake] Mark reviewed failed:", err)
+      alert("Could not mark as reviewed. Please try again.")
+    }
+  }
+
+  async function handleDelete(id, token) {
+    try {
+      await deleteDoc(doc(db, "pending_intakes", id))
+      // Best-effort: also delete the token document
+      deleteDoc(doc(db, "intakeTokens", token)).catch(
+        (e) => console.warn("[SmartIntake] Token delete failed (non-fatal):", e?.code)
+      )
+      // Remove from local state immediately
+      setIntakes((prev) => prev.filter((item) => item.id !== id))
+    } catch (err) {
+      console.error("[SmartIntake] Delete failed:", err)
+      alert("Could not delete this intake. Please try again.")
+    }
+  }
+
   if (loading) return <p className="intake-loading">Loading recent intakes…</p>
   if (error) return <p className="intake-error">{error}</p>
+
+  const activeIntakes = (intakes ?? []).filter(
+    (i) => i.status === "completed" || !i.status
+  )
+  const reviewedIntakes = (intakes ?? []).filter(
+    (i) => i.status === "reviewed"
+  )
+  const displayed = view === "active" ? activeIntakes : reviewedIntakes
 
   return (
     <div className="recent-intakes">
       <h2>Recent Intakes</h2>
-      {intakes.length === 0 ? (
+
+      {/* Lifecycle disclaimer */}
+      <div className="intake-lifecycle-note" role="note">
+        <strong>Intakes are temporary.</strong> Copy the summary to your EMR, then mark reviewed
+        or delete. PsychMetric is not a medical record system.
+      </div>
+
+      {/* View tabs */}
+      <div className="intake-view-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === "active"}
+          className={`intake-view-tab${view === "active" ? " intake-view-tab--active" : ""}`}
+          onClick={() => setView("active")}
+        >
+          Awaiting Review
+          {activeIntakes.length > 0 && (
+            <span className="intake-tab-count">{activeIntakes.length}</span>
+          )}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === "reviewed"}
+          className={`intake-view-tab${view === "reviewed" ? " intake-view-tab--active" : ""}`}
+          onClick={() => setView("reviewed")}
+        >
+          Reviewed
+          {reviewedIntakes.length > 0 && (
+            <span className="intake-tab-count">{reviewedIntakes.length}</span>
+          )}
+        </button>
+      </div>
+
+      {displayed.length === 0 ? (
         <p className="intake-empty-state">
-          No completed intakes yet. Share a link with a patient to get started.
+          {view === "active"
+            ? "No intakes awaiting review. Share a link with a patient to get started."
+            : "No reviewed intakes yet."}
         </p>
       ) : (
         <div className="intake-results-grid">
-          {intakes.map((intake) => (
-            <IntakeCard key={intake.id} intake={intake} />
+          {displayed.map((intake) => (
+            <IntakeCard
+              key={intake.id}
+              intake={intake}
+              onMarkReviewed={view === "active" ? handleMarkReviewed : null}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}
@@ -217,6 +294,9 @@ function RecentIntakes({ user }) {
   )
 }
 
+// ─────────────────────────────────────────────
+// SmartIntakePage
+// ─────────────────────────────────────────────
 export default function SmartIntakePage({ user }) {
   return (
     <section className="placeholder-page">

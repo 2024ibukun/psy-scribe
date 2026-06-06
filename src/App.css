@@ -1822,3 +1822,162 @@
   text-align: center;
   max-width: 440px;
 }
+
+/* ══════════════════════════════════════════
+   PHASE 3 HARDENING — lifecycle styles
+══════════════════════════════════════════ */
+
+/* Lifecycle disclaimer */
+.intake-lifecycle-note {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #fffbeb;
+  border: 1px solid #f0d97a;
+  color: #6b5000;
+  font-size: 0.83rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* View tabs */
+.intake-view-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--line);
+  margin-bottom: 20px;
+}
+
+.intake-view-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--muted);
+  transition: color 150ms, border-color 150ms;
+  cursor: pointer;
+}
+
+.intake-view-tab--active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.intake-view-tab:hover:not(.intake-view-tab--active) {
+  color: var(--primary-dark);
+}
+
+.intake-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #eaf5f3;
+  color: var(--primary-dark);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.intake-view-tab--active .intake-tab-count {
+  background: var(--primary);
+  color: white;
+}
+
+/* Reviewed badge */
+.intake-reviewed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #d1fae5;
+  color: #065f46;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Reviewed card — dimmed slightly */
+.intake-result-card--reviewed {
+  opacity: 0.82;
+}
+
+/* Mark reviewed button */
+.intake-result-btn--reviewed {
+  color: #059669;
+  border-color: #059669;
+}
+
+.intake-result-btn--reviewed:hover {
+  background: #d1fae5;
+}
+
+/* Delete button */
+.intake-result-btn--delete {
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.intake-result-btn--delete:hover {
+  background: #fee2e2;
+}
+
+/* Inline delete confirmation */
+.intake-delete-confirm {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+}
+
+.intake-delete-confirm p {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: #991b1b;
+  line-height: 1.5;
+}
+
+.intake-delete-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.intake-delete-btn {
+  padding: 8px 16px;
+  border-radius: 7px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  background: #EF4444;
+  color: white;
+  border: none;
+  transition: background 150ms;
+}
+
+.intake-delete-btn:hover {
+  background: #dc2626;
+}
+
+.intake-cancel-btn {
+  padding: 8px 16px;
+  border-radius: 7px;
+  font-size: 0.83rem;
+  font-weight: 650;
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--line-strong);
+  transition: background 150ms;
+}
+
+.intake-cancel-btn:hover {
+  background: #f3f4f6;
+}

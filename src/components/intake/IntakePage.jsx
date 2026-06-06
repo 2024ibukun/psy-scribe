@@ -67,7 +67,7 @@ const INTAKE_CONFIG = {
 }
 
 // ─────────────────────────────────────────────
-// Steps: loading → invalid | verify → form → phq9 → gad7 → submitting → done
+// Steps: loading → expired | invalid | already-done | verify → form → phq9 → gad7 → submitting → done
 // ─────────────────────────────────────────────
 
 function IntakeHeader() {
@@ -231,8 +231,7 @@ export default function IntakePage() {
   const [firstName, setFirstName] = useState("")
   const [formData, setFormData] = useState(null)
   const [phq9Result, setPhq9Result] = useState(null)
-  // Store gad7Result in state so the retry button can re-submit
-  // without the patient losing any of their answers.
+  // Preserved in state so the retry button can re-submit without losing data
   const [gad7Result, setGad7Result] = useState(null)
 
   const config = INTAKE_CONFIG.adult
@@ -247,10 +246,22 @@ export default function IntakePage() {
           return
         }
         const data = snap.data()
+
+        // Check expiration — expiresAt is a Firestore Timestamp
+        if (data.expiresAt) {
+          const expiry = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt)
+          if (expiry < new Date()) {
+            setStep("expired")
+            return
+          }
+        }
+
+        // One-time use — already submitted
         if (data.status === "completed") {
           setStep("already-done")
           return
         }
+
         setTokenData(data)
         setStep("verify")
       } catch {
@@ -260,36 +271,26 @@ export default function IntakePage() {
     loadToken()
   }, [token])
 
-  // Step 2 — DOB verified
   function handleVerified(first) {
     setFirstName(first)
     setStep("form")
   }
 
-  // Step 3 — patient + clinical form done
   function handleFormComplete(data) {
     setFormData(data)
     setStep("phq9")
   }
 
-  // Step 4 — PHQ-9 done
   function handlePHQ9Complete(result) {
     setPhq9Result(result)
     setStep("gad7")
   }
 
   // ─────────────────────────────────────────────
-  // Core submission function — separated so the
-  // retry button can call it again with the same
-  // data without the patient losing anything.
-  //
-  // CRITICAL: addDoc to pending_intakes is the
-  // only write that must succeed. The updateDoc
-  // to intakeTokens (marking status "completed")
-  // is best-effort cleanup only — the patient is
-  // unauthenticated so Firestore rules may block
-  // it. We fire it without awaiting and never let
-  // it fail the submission.
+  // Core submission — decoupled writes.
+  // addDoc to pending_intakes is the critical write.
+  // updateDoc to intakeTokens is best-effort cleanup
+  // (patient is unauthenticated; rules may block it).
   // ─────────────────────────────────────────────
   const submitIntake = useCallback(async (gad7Data) => {
     setStep("submitting")
@@ -314,12 +315,12 @@ export default function IntakePage() {
         gad7Responses: gad7Data.responses,
         gad7Score: gad7Data.score,
         gad7Severity: gad7Data.severity,
+        status: "completed",          // intake lifecycle status
         createdAt: serverTimestamp(),
       })
 
       // Best-effort token status update — do NOT await.
-      // Patient has no auth so this write may be blocked by Firestore rules.
-      // That is acceptable: the intake data above is already safely stored.
+      // Patient is unauthenticated; if rules block this, it is non-fatal.
       updateDoc(doc(db, "intakeTokens", token), { status: "completed" }).catch(
         (e) => console.warn("[IntakePage] Token status update failed (non-fatal):", e?.code)
       )
@@ -332,13 +333,11 @@ export default function IntakePage() {
     }
   }, [token, tokenData, formData, phq9Result])
 
-  // Step 5 — GAD-7 done → save result and submit
   function handleGAD7Complete(result) {
-    setGad7Result(result) // preserve for retry
+    setGad7Result(result)
     submitIntake(result)
   }
 
-  // Retry — uses saved state, patient loses nothing
   function handleRetry() {
     if (gad7Result) submitIntake(gad7Result)
   }
@@ -355,6 +354,15 @@ export default function IntakePage() {
           </div>
         )}
 
+        {step === "expired" && (
+          <div className="intake-card" style={{ textAlign: "center" }}>
+            <h2 className="intake-title">Link expired</h2>
+            <p className="intake-subtitle">
+              This intake link has expired. Please contact your clinician for a new link.
+            </p>
+          </div>
+        )}
+
         {step === "invalid" && (
           <div className="intake-card" style={{ textAlign: "center" }}>
             <h2 className="intake-title">Link not found</h2>
@@ -368,7 +376,8 @@ export default function IntakePage() {
           <div className="intake-card" style={{ textAlign: "center" }}>
             <h2 className="intake-title">Already submitted</h2>
             <p className="intake-subtitle">
-              This intake has already been completed. If you have questions, please contact your clinician.
+              This intake has already been submitted. Please contact your clinician
+              if you need to make changes.
             </p>
           </div>
         )}

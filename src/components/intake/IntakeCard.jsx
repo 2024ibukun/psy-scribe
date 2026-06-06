@@ -38,14 +38,22 @@ function generateSummary(intake) {
 
 function formatDate(ts) {
   if (!ts) return "—"
-  // Firestore Timestamp object has .toDate()
   const d = ts.toDate ? ts.toDate() : new Date(ts)
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 }
 
-export default function IntakeCard({ intake }) {
+/**
+ * IntakeCard
+ * Props:
+ *   intake           — intake document data (with .id)
+ *   onMarkReviewed   — (id) => void
+ *   onDelete         — (id, token) => void
+ */
+export default function IntakeCard({ intake, onMarkReviewed, onDelete }) {
   const [showSummary, setShowSummary] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const isReviewed = intake.status === "reviewed"
 
   async function handleCopy() {
     const text = generateSummary(intake)
@@ -55,7 +63,8 @@ export default function IntakeCard({ intake }) {
   }
 
   return (
-    <div className="intake-result-card">
+    <div className={`intake-result-card${isReviewed ? " intake-result-card--reviewed" : ""}`}>
+
       {/* Q9 Safety Flag — must be impossible to miss */}
       {intake.phq9Q9Flag && (
         <div className="intake-q9-flag" role="alert">
@@ -73,6 +82,9 @@ export default function IntakeCard({ intake }) {
           <h3 className="intake-result-card__name">{intake.patientName}</h3>
           <p className="intake-result-card__date">Submitted {formatDate(intake.createdAt)}</p>
         </div>
+        {isReviewed && (
+          <span className="intake-reviewed-badge">✓ Reviewed</span>
+        )}
       </div>
 
       {intake.chiefComplaint && (
@@ -96,6 +108,7 @@ export default function IntakeCard({ intake }) {
         >
           {showSummary ? "Hide Summary" : "Generate Summary"}
         </button>
+
         {showSummary && (
           <button
             type="button"
@@ -105,7 +118,53 @@ export default function IntakeCard({ intake }) {
             {copied ? "Copied ✓" : "Copy Summary"}
           </button>
         )}
+
+        {!isReviewed && onMarkReviewed && (
+          <button
+            type="button"
+            className="intake-result-btn intake-result-btn--reviewed"
+            onClick={() => onMarkReviewed(intake.id)}
+          >
+            Mark as Reviewed
+          </button>
+        )}
+
+        {onDelete && !confirmDelete && (
+          <button
+            type="button"
+            className="intake-result-btn intake-result-btn--delete"
+            onClick={() => setConfirmDelete(true)}
+          >
+            Delete
+          </button>
+        )}
       </div>
+
+      {/* Inline delete confirmation */}
+      {confirmDelete && (
+        <div className="intake-delete-confirm" role="alertdialog">
+          <p>
+            Delete this intake permanently? This cannot be undone.
+            Make sure you have copied the information to your EMR.
+          </p>
+          <div className="intake-delete-actions">
+            <button
+              type="button"
+              className="intake-delete-btn"
+              onClick={() => onDelete(intake.id, intake.token)}
+            >
+              Delete permanently
+            </button>
+            <button
+              type="button"
+              className="intake-cancel-btn"
+              onClick={() => setConfirmDelete(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {showSummary && (
         <pre className="intake-summary-panel">{generateSummary(intake)}</pre>

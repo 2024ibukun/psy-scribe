@@ -4,12 +4,10 @@ service cloud.firestore {
 
     // ── intakeTokens ─────────────────────────────────────
     // Created by authenticated clinicians.
-    // Readable by anyone who has the exact token document ID
-    // (the token string itself acts as the access control).
-    // Authenticated clinicians can do full updates.
-    // Unauthenticated patients can only flip status to
-    // "completed" — they already proved access by knowing
-    // the token ID (which is unguessable).
+    // Readable by anyone who knows the exact token ID.
+    // Clinicians can create and fully update.
+    // Unauthenticated patients can flip status to "completed" only.
+    // Clinicians can delete their own tokens.
     match /intakeTokens/{tokenId} {
       allow read: if true;
       allow create: if request.auth != null;
@@ -17,18 +15,26 @@ service cloud.firestore {
                     || (request.resource.data.diff(resource.data)
                           .affectedKeys().hasOnly(['status'])
                         && request.resource.data.status == 'completed');
-      allow delete: if false;
+      allow delete: if request.auth != null
+                    && resource.data.clinicianId == request.auth.uid;
     }
 
     // ── pending_intakes ───────────────────────────────────
-    // Written by the public patient intake flow (no auth).
-    // Readable only by the authenticated clinician whose uid
-    // matches the clinicianId stored in the document.
+    // Written by the public patient intake flow (no auth required).
+    // Readable only by the clinician whose uid matches clinicianId.
+    // Clinician can update status to "reviewed" (no other field changes).
+    // Clinician can delete their own intakes.
     match /pending_intakes/{docId} {
       allow create: if true;
       allow read: if request.auth != null
                   && resource.data.clinicianId == request.auth.uid;
-      allow update, delete: if false;
+      allow update: if request.auth != null
+                    && resource.data.clinicianId == request.auth.uid
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys().hasOnly(['status'])
+                    && request.resource.data.status == 'reviewed';
+      allow delete: if request.auth != null
+                    && resource.data.clinicianId == request.auth.uid;
     }
 
   }
