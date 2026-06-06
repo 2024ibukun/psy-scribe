@@ -28,26 +28,63 @@ function GenerateLinkPanel({ user }) {
   async function handleGenerate(e) {
     e.preventDefault()
     setError("")
+
     if (!patientName.trim() || !dob) {
       setError("Please enter the patient name and date of birth.")
       return
     }
+    if (!user?.uid) {
+      setError("Authentication error — please sign out and sign in again.")
+      return
+    }
+
     setLoading(true)
     try {
       const token = generateToken()
-      await setDoc(doc(db, "intakeTokens", token), {
-        token,
-        clinicianId: user.uid,
-        patientName: patientName.trim(),
-        dob,
-        status: "pending",
-        createdAt: serverTimestamp(),
-      })
+
+      // Race against a 12-second timeout so the button never hangs forever.
+      // Firestore hangs indefinitely (no error thrown) when the database has
+      // not been created yet in Firebase Console, or when rules are misconfigured.
+      await Promise.race([
+        setDoc(doc(db, "intakeTokens", token), {
+          token,
+          clinicianId: user.uid,
+          patientName: patientName.trim(),
+          dob,
+          status: "pending",
+          createdAt: serverTimestamp(),
+        }),
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(Object.assign(new Error("Firestore did not respond"), { code: "TIMEOUT" })),
+            12000
+          )
+        ),
+      ])
+
       const link = `${window.location.origin}/intake/${token}`
       setGeneratedLink(link)
     } catch (err) {
-      setError("Failed to generate link. Please try again.")
-      console.error(err)
+      const code = err?.code ?? "unknown"
+      console.error("[SmartIntake] setDoc error:", code, err)
+
+      if (code === "TIMEOUT") {
+        setError(
+          "Firestore is not responding (timed out). " +
+          "The database may not be created yet — go to Firebase Console → " +
+          "Firestore Database and create the database, then publish the security rules."
+        )
+      } else if (code === "permission-denied") {
+        setError(
+          "Firestore permissions denied. " +
+          "The security rules need to be published in Firebase Console → " +
+          "Firestore Database → Rules tab."
+        )
+      } else {
+        setError(
+          `Write failed (${code}). Check the browser console (F12) for details.`
+        )
+      }
     } finally {
       setLoading(false)
     }
