@@ -145,12 +145,10 @@ function IScribeBanner() {
     <section className="iscribe-banner" aria-label="iScribe AI Documentation">
       <div className="iscribe-banner__inner">
         <div className="iscribe-banner__text">
-          <span className="iscribe-banner__badge">Coming Next — iScribe</span>
-          <h2 className="iscribe-banner__title">Notes that know your patient.</h2>
+          <span className="iscribe-banner__badge">Coming in Phase 5</span>
+          <h2 className="iscribe-banner__title">Scribe</h2>
           <p className="iscribe-banner__subtitle">
-            When your PHQ-9, Vanderbilt, and C-SSRS are already in PsychMetric, your note has context
-            before you dictate a word. iScribe uses your assessment data to generate a structured
-            psychiatric SOAP note — not a generic transcript, but a note that already knows the scores.
+            Dictate your psychiatric note. We structure it into a complete SOAP note ready for your EMR.
           </p>
         </div>
       </div>
@@ -164,13 +162,13 @@ function HomePage() {
       <section className="hero-section">
         <div className="hero-copy">
           <p className="eyebrow">Clinician-built. Psychiatry-focused.</p>
-          <h1>Psychiatric assessments built around how psychiatrists actually work.</h1>
+          <h1>Psychometric assessments for modern mental health care.</h1>
           <ul className="hero-proof-list">
             <li><span className="hero-proof-arrow">→</span> Send the Vanderbilt to a teacher in 60 seconds</li>
             <li><span className="hero-proof-arrow">→</span> PHQ-9 scored before the patient enters the room</li>
             <li><span className="hero-proof-arrow">→</span> Spravato sessions tracked for REMS compliance</li>
           </ul>
-          <p className="hero-descriptor">Psychometric assessments for modern mental health care.</p>
+          <p className="hero-descriptor">PsychMetric was built with the thought of how psychiatrists actually work.</p>
           <div className="hero-actions">
             <Link className="primary-button" to="/templates">Explore templates</Link>
             <Link className="secondary-button" to="/psychometrics">View psychometrics</Link>
@@ -192,10 +190,10 @@ function HomePage() {
       <section className="features-section" id="features">
         <div className="section-heading">
           <p className="eyebrow">Core workflow</p>
-          <h2>Built for psychiatric workflows.</h2>
+          <h2>Simple tools for psychiatric encounters.</h2>
           <p>
-            The first version focuses on assessment delivery, scoring, and clinician-controlled
-            review — built by a clinician who uses these tools daily.
+            The first version focuses on the foundation: assessments, templates, measures, and
+            clinician-controlled review.
           </p>
         </div>
         <div className="feature-grid">

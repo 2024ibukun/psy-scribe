@@ -952,10 +952,10 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 1.02rem;
-  color: var(--ink);
-  font-weight: 550;
-  line-height: 1.4;
+  font-size: 1.25rem;
+  color: #1F2937;
+  font-weight: 600;
+  line-height: 1.45;
 }
 
 .hero-proof-arrow {
@@ -966,8 +966,9 @@
 
 .hero-descriptor {
   margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 0.95rem;
+  color: #6B7280;
+  font-size: 0.875rem;
+  font-style: italic;
 }
 
 /* ── Hero preview (three AssessmentCard previews) ── */
