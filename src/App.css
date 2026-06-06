@@ -705,3 +705,408 @@
 }
 
 .signout-btn { font-size: .8rem; padding: .375rem .875rem; }
+
+/* ── Mobile navbar avatar ── */
+.user-avatar {
+  display: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), #6B3FA0);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .user-email { display: none; }
+  .user-avatar { display: inline-flex; }
+}
+
+/* ── Demo badge on product preview ── */
+.product-preview {
+  position: relative;
+}
+
+.demo-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(107, 63, 160, 0.12);
+  color: #6B3FA0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid rgba(107, 63, 160, 0.25);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+/* ── iScribe Banner ── */
+.iscribe-banner {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(10, 108, 116, 0.08) 0%, rgba(107, 63, 160, 0.08) 100%);
+  border: 1px solid rgba(10, 108, 116, 0.18);
+}
+
+.iscribe-banner__inner {
+  padding: 44px 48px;
+}
+
+.iscribe-banner__badge {
+  display: inline-flex;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(107, 63, 160, 0.12);
+  color: #6B3FA0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.iscribe-banner__title {
+  margin: 0 0 10px;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, #0A6C74, #6B3FA0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.iscribe-banner__subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  max-width: 560px;
+}
+
+@media (max-width: 700px) {
+  .iscribe-banner { width: min(100% - 32px, 1180px); }
+  .iscribe-banner__inner { padding: 28px 20px; }
+}
+
+/* ── Templates iScribe subtitle ── */
+.templates-iscribe-subtitle {
+  margin: 14px 0 0 !important;
+  color: #6B3FA0 !important;
+  font-size: 1rem !important;
+  font-weight: 600;
+}
+
+/* ── Assessment Workspace ── */
+.assessment-workspace {
+  position: relative;
+}
+
+.workspace-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.workspace-section-title {
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.workspace-search-label {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.workspace-disclaimer {
+  margin: 40px 0 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+/* ── Toast ── */
+.workspace-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: #1f2937;
+  color: white;
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── Mode Toggle ── */
+.mode-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.mode-toggle__btn {
+  padding: 8px 20px;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--muted);
+  background: transparent;
+  transition: background 150ms, color 150ms;
+}
+
+.mode-toggle__btn--active {
+  color: white;
+  background: var(--primary);
+}
+
+.mode-toggle__btn:not(.mode-toggle__btn--active):hover {
+  background: #eaf5f3;
+  color: var(--primary-dark);
+}
+
+/* ── Search ── */
+.assessment-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 340px;
+}
+
+.assessment-search__icon {
+  position: absolute;
+  left: 10px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.assessment-search__input {
+  width: 100%;
+  padding: 9px 36px 9px 34px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  background: var(--surface);
+  color: var(--ink);
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.assessment-search__input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(10, 108, 116, 0.12);
+}
+
+.assessment-search__clear {
+  position: absolute;
+  right: 8px;
+  padding: 4px 6px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  border-radius: 4px;
+}
+
+.assessment-search__clear:hover { color: var(--ink); }
+
+/* ── Assessment Grid ── */
+.assessment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 980px) {
+  .assessment-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .assessment-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Assessment Card ── */
+.assessment-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  transition: box-shadow 150ms;
+}
+
+.assessment-card:hover {
+  box-shadow: 0 4px 16px rgba(10, 108, 116, 0.1);
+}
+
+.assessment-card--safety {
+  border-left: 3px solid var(--color-danger, #EF4444);
+}
+
+.assessment-card__header {
+  margin-bottom: 14px;
+}
+
+.assessment-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.assessment-card__shield {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-danger, #EF4444);
+}
+
+.assessment-card__name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 750;
+  color: var(--ink);
+}
+
+.assessment-card__safety-label {
+  margin: 2px 0 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-danger, #EF4444);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.assessment-card__full-name {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.assessment-card__description {
+  margin: 6px 0 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.assessment-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.assessment-action-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--primary-dark);
+  background: #eaf5f3;
+  transition: background 150ms;
+  text-align: center;
+}
+
+.assessment-action-btn:hover {
+  background: #d4ecea;
+}
+
+.assessment-action-btn--primary {
+  color: white;
+  background: var(--primary);
+}
+
+.assessment-action-btn--primary:hover {
+  background: var(--primary-dark);
+}
+
+/* ── Accordion ── */
+.accordion {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.accordion__item {
+  border-bottom: 1px solid var(--line);
+}
+
+.accordion__item:last-child {
+  border-bottom: none;
+}
+
+.accordion__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--surface);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: left;
+  transition: background 150ms;
+}
+
+.accordion__header:hover {
+  background: #f5faf9;
+}
+
+.accordion__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.accordion__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #eaf5f3;
+  color: var(--primary-dark);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.accordion__body {
+  padding: 20px;
+  background: #fafcfc;
+  border-top: 1px solid var(--line);
+}
+
+.accordion__empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}

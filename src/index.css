@@ -12,8 +12,13 @@
   --color-primary: #0A6C74;
   --color-secondary: #6B3FA0;
   --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
   --color-bg: #F8F9FA;
   --color-white: #FFFFFF;
+  --color-text: #1F2937;
+  --color-muted: #6B7280;
+  --color-border: #E5E7EB;
 
   /* App tokens */
   --background: #F8F9FA;

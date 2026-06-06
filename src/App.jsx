@@ -3,6 +3,7 @@ import { Link, NavLink, Route, Routes } from 'react-router-dom'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './firebase'
 import Login from './components/Login'
+import AssessmentWorkspace from './components/assessments/AssessmentWorkspace'
 import './App.css'
 
 const features = [
@@ -18,6 +19,15 @@ const metrics = [
   { value: '< 2 min', label: 'target draft turnaround' },
 ]
 
+function UserAvatar({ email }) {
+  const initial = email ? email[0].toUpperCase() : '?'
+  return (
+    <span className="user-avatar" aria-label={`Signed in as ${email}`}>
+      {initial}
+    </span>
+  )
+}
+
 function Header({ user }) {
   return (
     <header className="site-header">
@@ -32,7 +42,12 @@ function Header({ user }) {
         <NavLink to="/templates">Notes &amp; Templates</NavLink>
       </nav>
       <div className="header-user">
-        {user?.email && <span className="user-email">{user.email}</span>}
+        {user?.email && (
+          <>
+            <span className="user-email">{user.email}</span>
+            <UserAvatar email={user.email} />
+          </>
+        )}
         <button className="nav-cta signout-btn" onClick={() => signOut(auth)} type="button">Sign out</button>
       </div>
     </header>
@@ -42,6 +57,7 @@ function Header({ user }) {
 function ProductPreview() {
   return (
     <div className="product-preview" aria-label="PsychMetric clinical assessment preview">
+      <div className="demo-badge">Demo preview</div>
       <div className="preview-toolbar"><span /><span /><span /></div>
       <div className="preview-grid">
         <section className="note-panel">
@@ -66,6 +82,22 @@ function ProductPreview() {
         </aside>
       </div>
     </div>
+  )
+}
+
+function IScribeBanner() {
+  return (
+    <section className="iscribe-banner" aria-label="iScribe AI Documentation">
+      <div className="iscribe-banner__inner">
+        <div className="iscribe-banner__text">
+          <span className="iscribe-banner__badge">Coming in Phase 5</span>
+          <h2 className="iscribe-banner__title">iScribe AI Documentation</h2>
+          <p className="iscribe-banner__subtitle">
+            Dictate your psychiatric note. iScribe structures it into a complete SOAP note ready for your EMR.
+          </p>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -113,17 +145,38 @@ function HomePage() {
           ))}
         </div>
       </section>
+      <IScribeBanner />
     </>
   )
 }
 
-function PlaceholderPage({ eyebrow, title, description, items }) {
+function PsychometricToolsPage() {
   return (
     <section className="placeholder-page">
       <div className="placeholder-copy">
-        <p className="eyebrow">{eyebrow}</p>
-        <h1>{title}</h1>
-        <p>{description}</p>
+        <p className="eyebrow">Psychometric tools</p>
+        <h1>Measurement-based care workspace.</h1>
+        <p>Administer validated scales, review scores, and track symptom trajectories across visits.</p>
+      </div>
+      <AssessmentWorkspace />
+    </section>
+  )
+}
+
+function TemplatesPage() {
+  const items = [
+    { kicker: 'Coming in Phase 5', title: 'Initial psychiatric evaluation', description: 'Chief concern, HPI, psychiatric history, substance use, MSE, formulation, assessment, and plan.' },
+    { kicker: 'Coming in Phase 5', title: 'Medication management follow-up', description: 'Symptoms, adverse effects, adherence, safety review, medication changes, and follow-up plan.' },
+    { kicker: 'Coming in Phase 5', title: 'Risk assessment note', description: 'Suicidal ideation, protective factors, acute risk level, mitigation steps, and safety planning.' },
+  ]
+  return (
+    <section className="placeholder-page">
+      <div className="placeholder-copy">
+        <p className="eyebrow">Notes and templates</p>
+        <h1>Structured psychiatry note templates.</h1>
+        <p className="templates-iscribe-subtitle">
+          Powered by iScribe AI — speak your note, we structure it. Coming in Phase 5.
+        </p>
       </div>
       <div className="placeholder-list">
         {items.map((item) => (
@@ -135,36 +188,6 @@ function PlaceholderPage({ eyebrow, title, description, items }) {
         ))}
       </div>
     </section>
-  )
-}
-
-function PsychometricToolsPage() {
-  return (
-    <PlaceholderPage
-      eyebrow="Psychometric tools"
-      title="Measurement-based care workspace."
-      description="A placeholder for rating scales, scoring, trend views, and clinician review workflows."
-      items={[
-        { kicker: 'Planned', title: 'Common psychiatry scales', description: 'PHQ-9, GAD-7, PCL-5, AUDIT-C, MDQ, ASRS, and other validated tools can live here.' },
-        { kicker: 'Planned', title: 'Score interpretation', description: 'Surface score ranges, change over time, and prompts for clinician review without replacing clinical judgment.' },
-        { kicker: 'Planned', title: 'Longitudinal tracking', description: 'Give clinicians a quick view of symptom trajectories across visits.' },
-      ]}
-    />
-  )
-}
-
-function TemplatesPage() {
-  return (
-    <PlaceholderPage
-      eyebrow="Notes and templates"
-      title="Structured psychiatry note templates."
-      description="A placeholder for intake, follow-up, medication management, therapy, and risk assessment templates."
-      items={[
-        { kicker: 'Draft', title: 'Initial psychiatric evaluation', description: 'Chief concern, HPI, psychiatric history, substance use, MSE, formulation, assessment, and plan.' },
-        { kicker: 'Draft', title: 'Medication management follow-up', description: 'Symptoms, adverse effects, adherence, safety review, medication changes, and follow-up plan.' },
-        { kicker: 'Draft', title: 'Risk assessment note', description: 'Suicidal ideation, protective factors, acute risk level, mitigation steps, and safety planning.' },
-      ]}
-    />
   )
 }
 
