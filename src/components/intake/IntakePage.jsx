@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import {
   doc,
@@ -122,7 +122,6 @@ function StepVerify({ tokenData, onVerified }) {
 }
 
 function StepForm({ tokenData, firstName, config, onComplete }) {
-  // Build initial state from config fields
   const initPatient = Object.fromEntries(
     config.patientFields.map((f) => {
       if (f.id === "fullName") return [f.id, tokenData.patientName]
@@ -232,6 +231,9 @@ export default function IntakePage() {
   const [firstName, setFirstName] = useState("")
   const [formData, setFormData] = useState(null)
   const [phq9Result, setPhq9Result] = useState(null)
+  // Store gad7Result in state so the retry button can re-submit
+  // without the patient losing any of their answers.
+  const [gad7Result, setGad7Result] = useState(null)
 
   const config = INTAKE_CONFIG.adult
 
@@ -276,8 +278,20 @@ export default function IntakePage() {
     setStep("gad7")
   }
 
-  // Step 5 — GAD-7 done → submit
-  async function handleGAD7Complete(gad7Result) {
+  // ─────────────────────────────────────────────
+  // Core submission function — separated so the
+  // retry button can call it again with the same
+  // data without the patient losing anything.
+  //
+  // CRITICAL: addDoc to pending_intakes is the
+  // only write that must succeed. The updateDoc
+  // to intakeTokens (marking status "completed")
+  // is best-effort cleanup only — the patient is
+  // unauthenticated so Firestore rules may block
+  // it. We fire it without awaiting and never let
+  // it fail the submission.
+  // ─────────────────────────────────────────────
+  const submitIntake = useCallback(async (gad7Data) => {
     setStep("submitting")
     try {
       await addDoc(collection(db, "pending_intakes"), {
@@ -297,19 +311,36 @@ export default function IntakePage() {
         phq9Score: phq9Result.score,
         phq9Severity: phq9Result.severity,
         phq9Q9Flag: phq9Result.phq9Q9Flag,
-        gad7Responses: gad7Result.responses,
-        gad7Score: gad7Result.score,
-        gad7Severity: gad7Result.severity,
+        gad7Responses: gad7Data.responses,
+        gad7Score: gad7Data.score,
+        gad7Severity: gad7Data.severity,
         createdAt: serverTimestamp(),
       })
-      await updateDoc(doc(db, "intakeTokens", token), {
-        status: "completed",
-      })
+
+      // Best-effort token status update — do NOT await.
+      // Patient has no auth so this write may be blocked by Firestore rules.
+      // That is acceptable: the intake data above is already safely stored.
+      updateDoc(doc(db, "intakeTokens", token), { status: "completed" }).catch(
+        (e) => console.warn("[IntakePage] Token status update failed (non-fatal):", e?.code)
+      )
+
       setStep("done")
     } catch (err) {
-      console.error(err)
+      const code = err?.code ?? "unknown"
+      console.error("[IntakePage] Submission failed:", code, err)
       setStep("submit-error")
     }
+  }, [token, tokenData, formData, phq9Result])
+
+  // Step 5 — GAD-7 done → save result and submit
+  function handleGAD7Complete(result) {
+    setGad7Result(result) // preserve for retry
+    submitIntake(result)
+  }
+
+  // Retry — uses saved state, patient loses nothing
+  function handleRetry() {
+    if (gad7Result) submitIntake(gad7Result)
   }
 
   // ── Render ──
@@ -390,8 +421,17 @@ export default function IntakePage() {
           <div className="intake-card" style={{ textAlign: "center" }}>
             <h2 className="intake-title">Submission error</h2>
             <p className="intake-subtitle">
-              Something went wrong. Please refresh the page and try again, or contact your clinician.
+              Your answers are saved. Please tap the button below to try again.
+              Do not refresh this page.
             </p>
+            <button
+              type="button"
+              className="intake-primary-btn"
+              onClick={handleRetry}
+              style={{ marginTop: "8px" }}
+            >
+              Try Again
+            </button>
           </div>
         )}
 

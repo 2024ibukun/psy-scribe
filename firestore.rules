@@ -6,9 +6,17 @@ service cloud.firestore {
     // Created by authenticated clinicians.
     // Readable by anyone who has the exact token document ID
     // (the token string itself acts as the access control).
+    // Authenticated clinicians can do full updates.
+    // Unauthenticated patients can only flip status to
+    // "completed" — they already proved access by knowing
+    // the token ID (which is unguessable).
     match /intakeTokens/{tokenId} {
       allow read: if true;
-      allow create, update: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+                    || (request.resource.data.diff(resource.data)
+                          .affectedKeys().hasOnly(['status'])
+                        && request.resource.data.status == 'completed');
       allow delete: if false;
     }
 
