@@ -26,19 +26,39 @@ function generateToken() {
 // ─────────────────────────────────────────────
 // Generate Link Panel
 // ─────────────────────────────────────────────
+// Calculate age from a YYYY-MM-DD string; returns { age, autoType } or null
+function calcAgeInfo(dobStr) {
+  if (!dobStr) return null
+  // Force local-time parsing to avoid UTC-midnight off-by-one
+  const [y, m, d] = dobStr.split("-").map(Number)
+  const dob = new Date(y, m - 1, d)
+  const today = new Date()
+  let age = today.getFullYear() - dob.getFullYear()
+  const mDiff = today.getMonth() - dob.getMonth()
+  if (mDiff < 0 || (mDiff === 0 && today.getDate() < dob.getDate())) age--
+  return { age, autoType: age < 18 ? "pediatric" : "adult" }
+}
+
 function GenerateLinkPanel({ user, profile }) {
-  const [patientName,    setPatientName]    = useState("")
-  const [dob,            setDob]            = useState("")
-  const [loading,        setLoading]        = useState(false)
-  const [generatedLink,  setGeneratedLink]  = useState(null)
-  const [copied,         setCopied]         = useState(false)
-  const [copiedMsg,      setCopiedMsg]      = useState(false)
-  const [error,          setError]          = useState("")
+  const [patientName,       setPatientName]       = useState("")
+  const [dob,               setDob]               = useState("")
+  const [intakeTypeOverride, setIntakeTypeOverride] = useState(null) // null = use auto
+  const [loading,           setLoading]           = useState(false)
+  const [generatedLink,     setGeneratedLink]     = useState(null)
+  const [copied,            setCopied]            = useState(false)
+  const [copiedMsg,         setCopiedMsg]         = useState(false)
+  const [error,             setError]             = useState("")
+
+  // Reset override when DOB changes
+  useEffect(() => { setIntakeTypeOverride(null) }, [dob])
+
+  const ageInfo       = calcAgeInfo(dob)
+  const effectiveType = intakeTypeOverride ?? ageInfo?.autoType ?? "adult"
 
   const suggestedMessage = generatedLink
     ? profile?.clinicName
-      ? `Hi, this is ${profile.clinicName}. Before your appointment, please complete your intake form here: ${generatedLink}. It takes about 10 minutes.`
-      : `Please complete your intake form before your appointment: ${generatedLink}. It takes about 10 minutes.`
+      ? `Hi, this is ${profile.clinicName}. Before your ${effectiveType === "pediatric" ? "child's" : ""} appointment, please complete your intake form here: ${generatedLink}. It takes about 10 minutes.`.replace("your  appointment", "your appointment")
+      : `Please complete your intake form before the appointment: ${generatedLink}. It takes about 10 minutes.`
     : ""
 
   async function handleGenerate(e) {
@@ -64,6 +84,7 @@ function GenerateLinkPanel({ user, profile }) {
           clinicianId: user.uid,
           patientName: patientName.trim(),
           dob,
+          intakeType: effectiveType,
           status: "pending",
           createdAt: serverTimestamp(),
           expiresAt,
@@ -148,6 +169,36 @@ function GenerateLinkPanel({ user, profile }) {
               onChange={(e) => setDob(e.target.value)}
             />
           </div>
+          {/* Age and intake-type auto-detection with manual override */}
+          {ageInfo && (
+            <div className="intake-type-detect">
+              <span className="intake-type-detect__age">Age {ageInfo.age}</span>
+              <span className="intake-type-detect__arrow">→</span>
+              <span className={`intake-type-badge intake-type-badge--${effectiveType}`}>
+                {effectiveType === "pediatric" ? "Pediatric" : "Adult"}
+              </span>
+              <button
+                type="button"
+                className="intake-type-change"
+                onClick={() =>
+                  setIntakeTypeOverride(effectiveType === "pediatric" ? "adult" : "pediatric")
+                }
+              >
+                {effectiveType === "pediatric" ? "Change to Adult" : "Change to Pediatric"}
+              </button>
+              {intakeTypeOverride && (
+                <button
+                  type="button"
+                  className="intake-type-reset"
+                  onClick={() => setIntakeTypeOverride(null)}
+                  title="Reset to auto-detected type"
+                >
+                  ↩ Auto
+                </button>
+              )}
+            </div>
+          )}
+
           {error && <p className="intake-error">{error}</p>}
           <button type="submit" className="intake-primary-btn" disabled={loading}>
             {loading ? "Generating…" : "Generate Intake Link"}

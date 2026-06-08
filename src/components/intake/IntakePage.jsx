@@ -11,7 +11,10 @@ import {
 import { db } from "../../firebase"
 import PHQ9 from "../scales/PHQ9"
 import GAD7 from "../scales/GAD7"
+import PHQA from "../scales/PHQA"
+import SCARED from "../scales/SCARED"
 import ClinicIdentityBanner from "./ClinicIdentityBanner"
+import PediatricIntakeForm from "./PediatricIntakeForm"
 
 // ─────────────────────────────────────────────
 // Intake form configuration — config-driven so
@@ -420,7 +423,10 @@ export default function IntakePage() {
   const [firstName, setFirstName] = useState("")
   const [formData,  setFormData]  = useState(null)
   const [phq9Result, setPhq9Result] = useState(null)
-  const [gad7Result,   setGad7Result]   = useState(null)
+  const [gad7Result,    setGad7Result]    = useState(null)
+  // Pediatric-only scale results (preserved for retry)
+  const [phqaResult,    setPhqaResult]    = useState(null)
+  const [scaredResult,  setScaredResult]  = useState(null)
   // Clinician profile — loaded after token validation, used for ClinicIdentityBanner
   const [clinicProfile, setClinicProfile] = useState(null)
 
@@ -460,9 +466,18 @@ export default function IntakePage() {
     loadToken()
   }, [token])
 
-  function handleVerified(first)     { setFirstName(first); setStep("form") }
-  function handleFormComplete(data)  { setFormData(data);   setStep("phq9") }
-  function handlePHQ9Complete(result){ setPhq9Result(result); setStep("gad7") }
+  // ── Adult path ──
+  function handleVerified(first) {
+    setFirstName(first)
+    // Branch to pediatric form if the token specifies it
+    setStep(tokenData?.intakeType === "pediatric" ? "ped-form" : "form")
+  }
+  function handleFormComplete(data)   { setFormData(data);   setStep("phq9") }
+  function handlePHQ9Complete(result) { setPhq9Result(result); setStep("gad7") }
+
+  // ── Pediatric path ──
+  function handlePedFormComplete(data) { setFormData(data); setStep("phqa") }
+  function handlePHQAComplete(result)  { setPhqaResult(result); setStep("scared") }
 
   // ─────────────────────────────────────────────
   // Core submission — addDoc is the critical write,
@@ -531,12 +546,97 @@ export default function IntakePage() {
     submitIntake(result)
   }
 
+  // ─────────────────────────────────────────────
+  // Pediatric submission — same decoupled pattern
+  // as adult: addDoc is critical, token update is
+  // best-effort and never blocks the success step.
+  // ─────────────────────────────────────────────
+  const submitPediatricIntake = useCallback(async (scaredData) => {
+    setStep("submitting")
+    try {
+      await addDoc(collection(db, "pending_intakes"), {
+        token,
+        clinicianId: tokenData.clinicianId,
+        intakeType: "pediatric",
+
+        // Child identifiers (also stored as patientName/dob for dashboard compat)
+        patientName: formData.childFullName || tokenData.patientName,
+        dob:         formData.childDob      || tokenData.dob,
+        childName:   formData.childFullName || tokenData.patientName,
+        childDob:    formData.childDob      || tokenData.dob,
+
+        // Guardian info
+        guardianName:        formData.guardianName        || "",
+        relationshipToChild: formData.relationshipToChild || "",
+        completedBy:         formData.completedBy         || "",
+        childPreferredName:  formData.childPreferredName  || "",
+        guardianPhone:       formData.guardianPhone       || "",
+        guardianEmail:       formData.guardianEmail       || "",
+
+        // Reason for visit
+        chiefConcern:          formData.chiefConcern          || "",
+        currentConcerns:       formData.currentConcerns       || "",
+        medications:           formData.medications           || "",
+        allergies:             formData.allergies             || "",
+        emergencyContactName:  formData.emergencyContactName  || "",
+        emergencyContactPhone: formData.emergencyContactPhone || "",
+
+        // Developmental history
+        pregnancyBirthComplications:       formData.pregnancyBirthComplications       || "",
+        pregnancyBirthComplicationsDetail: formData.pregnancyBirthComplicationsDetail || "",
+        milestones:                        formData.milestones                        || "",
+        milestonesDetail:                  formData.milestonesDetail                  || "",
+        earlyInterventionDiagnoses:        formData.earlyInterventionDiagnoses        || "",
+        earlyInterventionDiagnosesDetail:  formData.earlyInterventionDiagnosesDetail  || "",
+
+        // School
+        grade:                  formData.grade                  || "",
+        schoolName:             formData.schoolName             || "",
+        iep504:                 formData.iep504                 || "",
+        academicPerformance:    formData.academicPerformance    || "",
+        schoolBehaviorConcerns: formData.schoolBehaviorConcerns || "",
+
+        // PHQ-A
+        phqaResponses:  phqaResult.responses,
+        phqaScore:      phqaResult.score,
+        phqaSeverity:   phqaResult.severity,
+        phqaItem9Flag:  phqaResult.phqaItem9Flag,
+
+        // SCARED
+        scaredResponses:     scaredData.responses,
+        scaredScore:         scaredData.score,
+        scaredInterpretation: scaredData.interpretation,
+
+        status:    "completed",
+        createdAt: serverTimestamp(),
+      })
+
+      updateDoc(doc(db, "intakeTokens", token), { status: "completed" }).catch(
+        (e) => console.warn("[IntakePage] Token status update (non-fatal):", e?.code)
+      )
+
+      setStep("done")
+    } catch (err) {
+      console.error("[IntakePage] Pediatric submit failed:", err?.code, err)
+      setStep("submit-error")
+    }
+  }, [token, tokenData, formData, phqaResult])
+
+  function handleSCAREDComplete(result) {
+    setScaredResult(result)
+    submitPediatricIntake(result)
+  }
+
   function handleRetry() {
-    if (gad7Result) submitIntake(gad7Result)
+    if (tokenData?.intakeType === "pediatric" && scaredResult) {
+      submitPediatricIntake(scaredResult)
+    } else if (gad7Result) {
+      submitIntake(gad7Result)
+    }
   }
 
   // Steps where the clinic identity banner should be visible
-  const SHOW_BANNER_STEPS = ["verify","form","phq9","gad7","submitting","done","submit-error"]
+  const SHOW_BANNER_STEPS = ["verify","form","phq9","gad7","ped-form","phqa","scared","submitting","done","submit-error"]
 
   // ── Render ──
   return (
@@ -602,6 +702,7 @@ export default function IntakePage() {
           </>
         )}
 
+        {/* ── Adult scales ── */}
         {step === "phq9" && (
           <div className="intake-card">
             <p className="intake-step-label">Questionnaire 1 of 2</p>
@@ -613,6 +714,30 @@ export default function IntakePage() {
           <div className="intake-card">
             <p className="intake-step-label">Questionnaire 2 of 2</p>
             <GAD7 onComplete={handleGAD7Complete} continueLabel="Submit Intake →" />
+          </div>
+        )}
+
+        {/* ── Pediatric form sections A–D ── */}
+        {step === "ped-form" && tokenData && (
+          <PediatricIntakeForm
+            tokenData={tokenData}
+            childFirstName={firstName}
+            onComplete={handlePedFormComplete}
+          />
+        )}
+
+        {/* ── Pediatric scales ── */}
+        {step === "phqa" && (
+          <div className="intake-card">
+            <p className="intake-step-label">Questionnaire 1 of 2</p>
+            <PHQA onComplete={handlePHQAComplete} continueLabel="Continue to SCARED →" />
+          </div>
+        )}
+
+        {step === "scared" && (
+          <div className="intake-card">
+            <p className="intake-step-label">Questionnaire 2 of 2</p>
+            <SCARED onComplete={handleSCAREDComplete} continueLabel="Submit Intake →" />
           </div>
         )}
 

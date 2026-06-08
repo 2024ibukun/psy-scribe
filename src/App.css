@@ -2294,3 +2294,101 @@
   border: 1px solid var(--line);
   border-radius: 7px;
 }
+
+/* ══════════════════════════════════════════
+   PEDIATRIC INTAKE — new styles
+══════════════════════════════════════════ */
+
+/* Intake type badge (Adult / Pediatric) */
+.intake-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.71rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.intake-type-badge--adult {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.intake-type-badge--pediatric {
+  background: #fce7f3;
+  color: #9d174d;
+}
+
+/* Age detection + override row in GenerateLinkPanel */
+.intake-type-detect {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f8faf9;
+  border: 1px solid var(--line);
+  margin-bottom: 4px;
+  font-size: 0.86rem;
+}
+
+.intake-type-detect__age {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.intake-type-detect__arrow {
+  color: var(--muted);
+}
+
+.intake-type-change {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.intake-type-change:hover { color: var(--primary-dark); }
+
+.intake-type-reset {
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.intake-type-reset:hover { color: var(--ink); }
+
+/* Pediatric form section label */
+.intake-form-section-label {
+  margin: 0 0 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* Divider inside intake card */
+.intake-divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 20px 0 16px;
+}
+
+/* Guardian line on dashboard card */
+.intake-guardian-line {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
