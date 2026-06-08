@@ -10,7 +10,7 @@ import SmartIntakePage from './components/intake/SmartIntakePage'
 import ClinicianProfilePage from './components/clinician/ClinicianProfilePage'
 import './App.css'
 
-// ── Hero preview cards — real product data ──
+// ── Hero preview cards ──
 const HERO_CARDS = [
   {
     id: "phq9-preview",
@@ -66,20 +66,34 @@ const metrics = [
   { value: '< 2 min', label: 'target draft turnaround' },
 ]
 
-// ── Nav dropdown ──
+// ─────────────────────────────────────────────
+// Shared chevron icon
+// ─────────────────────────────────────────────
 function ChevronDown() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <polyline points="6 9 12 15 18 9" />
     </svg>
   )
 }
 
-function NavDropdown({ label, items }) {
+// ─────────────────────────────────────────────
+// NavDropdown
+// items: { to, label, badge?, comingSoon? }
+//   - normal items have `to` and render as NavLink
+//   - comingSoon:true renders as a button; clicking calls onToast
+//   - badge adds a small "Coming Soon" tag next to the label
+// ─────────────────────────────────────────────
+function NavDropdown({ label, items, onToast }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const location = useLocation()
-  const isChildActive = items.some((item) => location.pathname.startsWith(item.to))
+
+  // Only real-route items count for the active trigger highlight
+  const isChildActive = items
+    .filter((i) => i.to)
+    .some((item) => location.pathname.startsWith(item.to))
 
   useEffect(() => {
     function handleOutside(e) {
@@ -89,7 +103,6 @@ function NavDropdown({ label, items }) {
     return () => document.removeEventListener('mousedown', handleOutside)
   }, [])
 
-  // Close on route change
   useEffect(() => { setOpen(false) }, [location.pathname])
 
   return (
@@ -106,37 +119,120 @@ function NavDropdown({ label, items }) {
       </button>
       {open && (
         <div className="nav-dropdown__menu" role="menu">
-          {items.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                'nav-dropdown__item' + (isActive ? ' active' : '')
-              }
-              role="menuitem"
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          {items.map((item) => {
+            if (item.comingSoon) {
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  className="nav-dropdown__item nav-dropdown__item--coming"
+                  role="menuitem"
+                  onClick={() => {
+                    setOpen(false)
+                    onToast?.(`${item.label} — coming soon.`)
+                  }}
+                >
+                  {item.label}
+                  {item.badge && <span className="nav-badge">{item.badge}</span>}
+                </button>
+              )
+            }
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => 'nav-dropdown__item' + (isActive ? ' active' : '')}
+                role="menuitem"
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+                {item.badge && <span className="nav-badge">{item.badge}</span>}
+              </NavLink>
+            )
+          })}
         </div>
       )}
     </div>
   )
 }
 
-function UserAvatar({ email }) {
-  const initial = email ? email[0].toUpperCase() : '?'
+// ─────────────────────────────────────────────
+// AvatarMenu — replaces the old header-user div
+// Shows initials, opens dropdown with Profile + Sign Out
+// ─────────────────────────────────────────────
+function AvatarMenu({ user }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const location = useLocation()
+  const initial = user?.email ? user.email[0].toUpperCase() : '?'
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [])
+
+  useEffect(() => { setOpen(false) }, [location.pathname])
+
   return (
-    <span className="user-avatar" aria-label={`Signed in as ${email}`}>
-      {initial}
-    </span>
+    <div className="avatar-menu" ref={ref}>
+      <button
+        type="button"
+        className={`avatar-menu__trigger${open ? ' avatar-menu__trigger--open' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Account menu"
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
+        {initial}
+      </button>
+      {open && (
+        <div className="avatar-menu__dropdown" role="menu">
+          {user?.email && (
+            <p className="avatar-menu__email">{user.email}</p>
+          )}
+          <NavLink
+            to="/settings/profile"
+            className={({ isActive }) => 'avatar-menu__item' + (isActive ? ' active' : '')}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            Profile
+          </NavLink>
+          <button
+            type="button"
+            className="avatar-menu__item avatar-menu__item--signout"
+            role="menuitem"
+            onClick={() => { setOpen(false); signOut(auth) }}
+          >
+            Sign out
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
 
+// ─────────────────────────────────────────────
+// Header
+// Top nav: logo | Home · Workspace dropdown | AvatarMenu
+// ─────────────────────────────────────────────
 function Header({ user }) {
+  const [toast, setToast] = useState(null)
+
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 2500)
+    return () => clearTimeout(t)
+  }, [toast])
+
   return (
     <header className="site-header">
+      {toast && (
+        <div className="nav-toast" role="status" aria-live="polite">{toast}</div>
+      )}
       <Link className="brand" to="/" aria-label="PsychMetric home">
         <span className="logo-wrap">
           <img src="/logo.png" alt="PsychMetric" className="brand-logo" />
@@ -145,28 +241,24 @@ function Header({ user }) {
       <nav className="nav-links" aria-label="Primary navigation">
         <NavLink to="/" end>Home</NavLink>
         <NavDropdown
-          label="Tools"
+          label="Workspace"
           items={[
+            { to: "/tools/intake",      label: "Smart Intake" },
             { to: "/tools/assessments", label: "Assessments" },
-            { to: "/tools/intake", label: "Smart Intake" },
-            { to: "/settings/profile", label: "Profile" },
+            { label: "Spravato",           badge: "Coming Soon", comingSoon: true },
+            { to: "/documentation",     label: "Clinical Templates", badge: "Coming Soon" },
           ]}
+          onToast={setToast}
         />
-        <NavLink to="/documentation">Documentation</NavLink>
       </nav>
-      <div className="header-user">
-        {user?.email && (
-          <>
-            <span className="user-email">{user.email}</span>
-            <UserAvatar email={user.email} />
-          </>
-        )}
-        <button className="nav-cta signout-btn" onClick={() => signOut(auth)} type="button">Sign out</button>
-      </div>
+      <AvatarMenu user={user} />
     </header>
   )
 }
 
+// ─────────────────────────────────────────────
+// Homepage components
+// ─────────────────────────────────────────────
 function HeroPreview() {
   const [toast, setToast] = useState(null)
 
@@ -217,17 +309,17 @@ function HomePage() {
           <p className="eyebrow">Clinician-built. Psychiatry-focused.</p>
           <h1>Measurement-based care for mental health.</h1>
           <ul className="hero-proof-list">
-            <li><span className="hero-proof-arrow">→</span> Send the Vanderbilt to a teacher in 60 seconds</li>
-            <li><span className="hero-proof-arrow">→</span> PHQ-9 scored before the patient enters the room</li>
-            <li><span className="hero-proof-arrow">→</span> Spravato sessions tracked for REMS compliance</li>
+            <li><span className="hero-proof-arrow">→</span> Send a smart intake link before the visit</li>
+            <li><span className="hero-proof-arrow">→</span> PHQ-9, GAD-7, Vanderbilt and more scored automatically</li>
+            <li><span className="hero-proof-arrow">→</span> Track Spravato and ketamine sessions for REMS compliance</li>
           </ul>
           <p className="hero-descriptor">PsychMetric was built with the thought of how psychiatrists actually work.</p>
           <div className="hero-actions">
-            <Link className="primary-button" to="/documentation">Explore templates</Link>
-            <Link className="secondary-button" to="/tools/assessments">View psychometrics</Link>
+            <Link className="primary-button" to="/tools/intake">Start Smart Intake</Link>
+            <Link className="secondary-button" to="/tools/assessments">Open Assessment Workspace</Link>
           </div>
           <p className="compliance-note">
-            Built with HIPAA-ready design priorities. Formal compliance depends on deployment, policies, agreements, and operational controls.
+            Built with HIPAA-ready design and a signed Business Associate Agreement with our cloud provider.
           </p>
         </div>
         <HeroPreview />
@@ -264,6 +356,9 @@ function HomePage() {
   )
 }
 
+// ─────────────────────────────────────────────
+// Inner pages — logic and routes untouched
+// ─────────────────────────────────────────────
 function AssessmentsPage() {
   return (
     <section className="placeholder-page">
@@ -277,7 +372,9 @@ function AssessmentsPage() {
   )
 }
 
-function DocumentationPage() {
+// Previously "DocumentationPage" — relabeled as Clinical Templates
+// Route stays at /documentation — no backend change
+function ClinicalTemplatesPage() {
   const items = [
     { kicker: 'Coming in Phase 5', title: 'Initial psychiatric evaluation', description: 'Chief concern, HPI, psychiatric history, substance use, MSE, formulation, assessment, and plan.' },
     { kicker: 'Coming in Phase 5', title: 'Medication management follow-up', description: 'Symptoms, adverse effects, adherence, safety review, medication changes, and follow-up plan.' },
@@ -286,7 +383,7 @@ function DocumentationPage() {
   return (
     <section className="placeholder-page">
       <div className="placeholder-copy">
-        <p className="eyebrow">Documentation</p>
+        <p className="eyebrow">Clinical Templates</p>
         <h1>Structured psychiatry note templates.</h1>
         <p className="templates-iscribe-subtitle">
           Powered by Scribe — speak your note, we structure it. Coming in Phase 5.
@@ -305,21 +402,23 @@ function DocumentationPage() {
   )
 }
 
-// ── Root App ──
+// ─────────────────────────────────────────────
+// Root authenticated app
+// ─────────────────────────────────────────────
 function AuthenticatedApp({ user }) {
   return (
     <div className="app-shell">
       <Header user={user} />
       <main>
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/tools/assessments" element={<AssessmentsPage />} />
-          <Route path="/tools/intake" element={<SmartIntakePage user={user} />} />
-          <Route path="/documentation" element={<DocumentationPage />} />
-          <Route path="/settings/profile" element={<ClinicianProfilePage user={user} />} />
-          {/* Legacy redirects — keep old URLs working */}
-          <Route path="/psychometrics" element={<Navigate to="/tools/assessments" replace />} />
-          <Route path="/templates" element={<Navigate to="/documentation" replace />} />
+          <Route path="/"                   element={<HomePage />} />
+          <Route path="/tools/assessments"  element={<AssessmentsPage />} />
+          <Route path="/tools/intake"       element={<SmartIntakePage user={user} />} />
+          <Route path="/documentation"      element={<ClinicalTemplatesPage />} />
+          <Route path="/settings/profile"   element={<ClinicianProfilePage user={user} />} />
+          {/* Legacy redirects — preserve all old URLs */}
+          <Route path="/psychometrics"      element={<Navigate to="/tools/assessments" replace />} />
+          <Route path="/templates"          element={<Navigate to="/documentation" replace />} />
         </Routes>
       </main>
       <footer className="site-footer">
@@ -340,7 +439,7 @@ export default function App() {
     return unsubscribe
   }, [])
 
-  // Public intake route — no auth required, no navbar, no clinician chrome
+  // Public intake route — no auth required, no clinician chrome
   if (location.pathname.startsWith('/intake/')) {
     return (
       <Routes>

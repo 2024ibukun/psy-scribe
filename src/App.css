@@ -713,24 +713,138 @@
 
 .signout-btn { font-size: .8rem; padding: .375rem .875rem; }
 
-/* ── Mobile navbar avatar ── */
-.user-avatar {
-  display: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), #6B3FA0);
-  color: white;
-  font-size: 0.78rem;
-  font-weight: 700;
-  align-items: center;
-  justify-content: center;
+/* ── Avatar menu (replaces header-user + signout button) ── */
+.avatar-menu {
+  position: relative;
   flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
-  .user-email { display: none; }
-  .user-avatar { display: inline-flex; }
+.avatar-menu__trigger {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), #6B3FA0);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  flex-shrink: 0;
+  transition: opacity 150ms, box-shadow 150ms;
+}
+
+.avatar-menu__trigger:hover,
+.avatar-menu__trigger--open {
+  opacity: 0.85;
+  box-shadow: 0 0 0 3px rgba(10, 108, 116, 0.22);
+}
+
+.avatar-menu__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 210px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(10, 108, 116, 0.13);
+  z-index: 100;
+  overflow: hidden;
+  padding: 4px;
+}
+
+.avatar-menu__email {
+  padding: 10px 14px 9px;
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.avatar-menu__item {
+  display: block;
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 7px;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 100ms, color 100ms;
+  text-decoration: none;
+}
+
+.avatar-menu__item:hover,
+.avatar-menu__item.active {
+  color: var(--primary-dark);
+  background: #eaf5f3;
+}
+
+.avatar-menu__item--signout {
+  margin-top: 2px;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 7px 7px;
+  padding-top: 10px;
+}
+
+.avatar-menu__item--signout:hover {
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+/* ── Nav badge ("Coming Soon" tag in dropdown) ── */
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  background: #f3f4f6;
+  color: #9ca3af;
+  margin-left: 7px;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+/* ── Coming-soon dropdown item ── */
+.nav-dropdown__item--coming {
+  width: 100%;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.nav-dropdown__item--coming:hover {
+  background: #f9fafb;
+  color: var(--muted);
+}
+
+/* ── Nav toast (brief notification for coming-soon clicks) ── */
+.nav-toast {
+  position: fixed;
+  top: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  padding: 9px 20px;
+  border-radius: 8px;
+  background: #1f2937;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
 }
 
 /* ── Demo badge on product preview ── */
