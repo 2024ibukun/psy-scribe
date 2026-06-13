@@ -33,9 +33,9 @@ function fmtDateRange(startStr, endStr) {
 const REASONS = ["Medical appointment", "Treatment", "Evaluation"]
 
 const REASON_MAP = {
-  "Medical appointment": "scheduled medical appointment",
-  "Treatment":           "psychiatric treatment",
-  "Evaluation":          "clinical evaluation",
+  "Medical appointment": "a medical appointment",
+  "Treatment":           "ongoing medical treatment",
+  "Evaluation":          "a clinical evaluation",
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ export default function AbsenceExcusePage({ user }) {
     const reason   = REASON_MAP[reasonCategory]
 
     const paragraphs = [
-      `This letter is to confirm that ${patientName.trim()} (DOB: ${dobStr}) was seen at this office on ${dateStr} for a ${reason}.`,
+      `This letter is to confirm that ${patientName.trim()} (DOB: ${dobStr}) was seen at this office on ${dateStr} for ${reason}.`,
     ]
     if (additionalNote.trim()) {
       paragraphs.push(additionalNote.trim())
