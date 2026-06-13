@@ -2843,6 +2843,12 @@
   font-size: 0.88rem;
 }
 
+/* ── School Accommodation: specific timeframe reveal ── */
+.sa-duration-custom {
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
 /* ── Breadcrumb link in StatForm pages ── */
 .letter-breadcrumb {
   color: var(--primary);

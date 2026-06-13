@@ -21,7 +21,8 @@ const LETTER_TYPES = [
     id: "school-accommodation",
     title: "School Accommodation Letter",
     description: "Request academic accommodations for a diagnosed psychiatric condition.",
-    status: "coming-soon",
+    status: "active",
+    route: "/statform/school-accommodation",
   },
   {
     id: "housing-accommodation",

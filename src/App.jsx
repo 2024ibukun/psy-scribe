@@ -11,6 +11,7 @@ import ClinicianProfilePage from './components/clinician/ClinicianProfilePage'
 import StatFormPage from './components/statform/StatFormPage'
 import AbsenceExcusePage from './components/statform/AbsenceExcusePage'
 import ReturnToWorkPage from './components/statform/ReturnToWorkPage'
+import SchoolAccommodationPage from './components/statform/SchoolAccommodationPage'
 import './App.css'
 
 // ── Hero preview cards ──
@@ -422,7 +423,8 @@ function AuthenticatedApp({ user }) {
           <Route path="/settings/profile"   element={<ClinicianProfilePage user={user} />} />
           <Route path="/statform"            element={<StatFormPage />} />
           <Route path="/statform/absence-excuse"  element={<AbsenceExcusePage user={user} />} />
-          <Route path="/statform/return-to-work"  element={<ReturnToWorkPage user={user} />} />
+          <Route path="/statform/return-to-work"       element={<ReturnToWorkPage user={user} />} />
+          <Route path="/statform/school-accommodation" element={<SchoolAccommodationPage user={user} />} />
           {/* Legacy redirects — preserve all old URLs */}
           <Route path="/psychometrics"      element={<Navigate to="/tools/assessments" replace />} />
           <Route path="/templates"          element={<Navigate to="/documentation" replace />} />
