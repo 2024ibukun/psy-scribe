@@ -28,7 +28,8 @@ const LETTER_TYPES = [
     id: "housing-accommodation",
     title: "Housing Accommodation Letter",
     description: "Document psychiatric need for a housing accommodation or exception.",
-    status: "coming-soon",
+    status: "active",
+    route: "/statform/housing-accommodation",
   },
 ]
 

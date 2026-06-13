@@ -2849,6 +2849,12 @@
   font-size: 0.9rem;
 }
 
+/* ── Housing Accommodation: "Prefer to specify" disability reveal ── */
+.ha-disability-custom {
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
 /* ── Breadcrumb link in StatForm pages ── */
 .letter-breadcrumb {
   color: var(--primary);
