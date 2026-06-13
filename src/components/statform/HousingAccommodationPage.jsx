@@ -170,9 +170,10 @@ export default function HousingAccommodationPage({ user }) {
 
     const dobStr          = fmtDate(patientDob)
     const name            = patientName.trim()
-    const disabilityPhrase = disabilityType === "Prefer to specify"
+    const rawPhrase        = disabilityType === "Prefer to specify"
       ? disabilityCustom.trim()
       : disabilityType
+    const disabilityPhrase = rawPhrase.charAt(0).toLowerCase() + rawPhrase.slice(1)
 
     const accomLines = ACCOMMODATION_OPTIONS
       .filter((o) => accommodations.includes(o.id))
