@@ -312,18 +312,18 @@ function HomePage() {
     <>
       <section className="hero-section">
         <div className="hero-copy">
-          <p className="eyebrow">Clinician-built. Psychiatry-focused.</p>
-          <h1>Measurement-based care for mental health.</h1>
+          <p className="eyebrow">Clinician-built.</p>
+          <h1>Less paperwork. More time with patients.</h1>
           <ul className="hero-proof-list">
             <li><span className="hero-proof-arrow">→</span> Send a smart intake link before the visit</li>
-            <li><span className="hero-proof-arrow">→</span> PHQ-9, GAD-7, Vanderbilt and more scored automatically</li>
+            <li><span className="hero-proof-arrow">→</span> Generate clinical letters in minutes</li>
             <li><span className="hero-proof-arrow">→</span> Track Spravato and ketamine sessions for REMS compliance</li>
           </ul>
-          <p className="hero-descriptor">PsychMetric was built with the thought of how psychiatrists actually work.</p>
           <div className="hero-actions">
             <Link className="primary-button" to="/tools/intake">Start Smart Intake</Link>
-            <Link className="secondary-button" to="/tools/assessments">Open Assessment Workspace</Link>
+            <Link className="secondary-button" to="/statform">StatForm</Link>
           </div>
+          <Link to="/tools/assessments" className="hero-explore-link">Explore assessments →</Link>
           <p className="compliance-note">
             Built with HIPAA-ready design and a signed Business Associate Agreement with our cloud provider.
           </p>
@@ -434,7 +434,7 @@ function AuthenticatedApp({ user }) {
       </main>
       <footer className="site-footer">
         <span>PsychMetric</span>
-        <span>Clinician-built. Psychiatry-focused.</span>
+        <span>Built for mental health clinicians.</span>
       </footer>
     </div>
   )

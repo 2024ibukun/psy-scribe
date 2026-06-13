@@ -68,7 +68,7 @@
 
 .brand-logo {
   width: auto;
-  height: 56px;
+  height: 64px;
   object-fit: contain;
   display: block;
   mix-blend-mode: multiply;
@@ -527,7 +527,7 @@
     gap: 14px;
   }
   .brand-logo {
-    height: 44px;
+    height: 50px;
   }
   .brand small,
   .nav-cta {
@@ -1083,6 +1083,21 @@
   color: #6B7280;
   font-size: 0.875rem;
   font-style: italic;
+}
+
+.hero-explore-link {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 0.83rem;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.hero-explore-link:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* ── Hero preview (three AssessmentCard previews) ── */
