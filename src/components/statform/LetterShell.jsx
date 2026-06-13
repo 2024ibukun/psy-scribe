@@ -66,8 +66,11 @@ export default function LetterShell({ user, bodyContent = "", children, onCoreCh
   // ── Plain-text assembly ───────────────────────────────────────────────────
   const buildPlainText = useCallback(() => {
     const lines = []
-    if (profile?.clinicName)    lines.push(profile.clinicName)
-    if (profile?.clinicPhone)   lines.push(profile.clinicPhone)
+    if (profile?.clinicName) lines.push(profile.clinicName)
+    if (profile?.clinicAddress) {
+      profile.clinicAddress.split("\n").forEach((l) => { if (l.trim()) lines.push(l.trim()) })
+    }
+    if (profile?.clinicPhone) lines.push(profile.clinicPhone)
     lines.push("")
     lines.push(letterDate ? formatDate(letterDate) : "")
     lines.push("")
@@ -125,6 +128,11 @@ export default function LetterShell({ user, bodyContent = "", children, onCoreCh
               )}
               {profile.clinicianName && (
                 <span className="letter-shell__clinic-detail">{profile.clinicianName}</span>
+              )}
+              {profile.clinicAddress && (
+                <span className="letter-shell__clinic-detail" style={{ whiteSpace: "pre-line" }}>
+                  {profile.clinicAddress}
+                </span>
               )}
               {profile.clinicPhone && (
                 <span className="letter-shell__clinic-detail">{profile.clinicPhone}</span>
@@ -196,10 +204,15 @@ export default function LetterShell({ user, bodyContent = "", children, onCoreCh
       <div className="letter-shell__preview-wrap">
         <div className="letter-preview" id="letter-preview-printable">
 
-          {/* Letterhead */}
+          {/* Letterhead — centered name / address / phone, then ruled line */}
           <div className="letter-preview__letterhead">
             {profile?.clinicName && (
               <p className="letter-preview__lh-name">{profile.clinicName}</p>
+            )}
+            {profile?.clinicAddress && profile.clinicAddress.trim().split("\n").map((line, i) =>
+              line.trim() ? (
+                <p key={i} className="letter-preview__lh-meta">{line.trim()}</p>
+              ) : null
             )}
             {profile?.clinicPhone && (
               <p className="letter-preview__lh-meta">{profile.clinicPhone}</p>

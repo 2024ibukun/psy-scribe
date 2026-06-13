@@ -3,9 +3,10 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "../../firebase"
 
 export default function ClinicianProfilePage({ user }) {
-  const [clinicianName, setClinicianName] = useState("")
-  const [clinicName,    setClinicName]    = useState("")
-  const [clinicPhone,   setClinicPhone]   = useState("")
+  const [clinicianName,  setClinicianName]  = useState("")
+  const [clinicName,     setClinicName]     = useState("")
+  const [clinicPhone,    setClinicPhone]    = useState("")
+  const [clinicAddress,  setClinicAddress]  = useState("")
   const [loading,  setLoading]  = useState(true)
   const [saving,   setSaving]   = useState(false)
   const [saved,    setSaved]    = useState(false)
@@ -17,9 +18,10 @@ export default function ClinicianProfilePage({ user }) {
         const snap = await getDoc(doc(db, "clinicianProfiles", user.uid))
         if (snap.exists()) {
           const d = snap.data()
-          setClinicianName(d.clinicianName || "")
-          setClinicName(d.clinicName    || "")
-          setClinicPhone(d.clinicPhone  || "")
+          setClinicianName(d.clinicianName  || "")
+          setClinicName(d.clinicName      || "")
+          setClinicPhone(d.clinicPhone    || "")
+          setClinicAddress(d.clinicAddress || "")
         }
       } catch (err) {
         console.error("[Profile] load error:", err)
@@ -46,10 +48,11 @@ export default function ClinicianProfilePage({ user }) {
       await setDoc(
         doc(db, "clinicianProfiles", user.uid),
         {
-          clinicianName: clinicianName.trim(),
-          clinicName:    clinicName.trim(),
-          clinicPhone:   clinicPhone.trim(),
-          updatedAt:     serverTimestamp(),
+          clinicianName:  clinicianName.trim(),
+          clinicName:     clinicName.trim(),
+          clinicPhone:    clinicPhone.trim(),
+          clinicAddress:  clinicAddress.trim(),
+          updatedAt:      serverTimestamp(),
         },
         { merge: true }
       )
@@ -137,6 +140,24 @@ export default function ClinicianProfilePage({ user }) {
             </p>
           </div>
 
+          <div className="intake-field">
+            <label className="intake-label" htmlFor="p-address">
+              Clinic Address (optional)
+            </label>
+            <textarea
+              id="p-address"
+              className="intake-textarea"
+              value={clinicAddress}
+              onChange={(e) => setClinicAddress(e.target.value)}
+              placeholder={"123 Main Street, Suite 100\nSpringfield, IL 62701"}
+              rows={3}
+              autoComplete="street-address"
+            />
+            <p className="intake-field-helper">
+              Appears in the letterhead of StatForm clinical letters.
+            </p>
+          </div>
+
           {error && <p className="intake-error" role="alert">{error}</p>}
 
           <button
@@ -159,6 +180,11 @@ export default function ClinicianProfilePage({ user }) {
               {clinicianName.trim() && (
                 <p className="clinic-identity__request">
                   {clinicianName} has requested that you complete a brief intake before your visit.
+                </p>
+              )}
+              {clinicAddress.trim() && (
+                <p className="clinic-identity__phone" style={{ whiteSpace: "pre-line" }}>
+                  {clinicAddress.trim()}
                 </p>
               )}
               {clinicPhone.trim() && (
