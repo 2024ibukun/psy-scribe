@@ -8,6 +8,8 @@ import AssessmentCard from './components/assessments/AssessmentCard'
 import IntakePage from './components/intake/IntakePage'
 import SmartIntakePage from './components/intake/SmartIntakePage'
 import ClinicianProfilePage from './components/clinician/ClinicianProfilePage'
+import StatFormPage from './components/statform/StatFormPage'
+import AbsenceExcusePage from './components/statform/AbsenceExcusePage'
 import './App.css'
 
 // ── Hero preview cards ──
@@ -250,6 +252,7 @@ function Header({ user }) {
           ]}
           onToast={setToast}
         />
+        <NavLink to="/statform">StatForm</NavLink>
       </nav>
       <AvatarMenu user={user} />
     </header>
@@ -416,6 +419,8 @@ function AuthenticatedApp({ user }) {
           <Route path="/tools/intake"       element={<SmartIntakePage user={user} />} />
           <Route path="/documentation"      element={<ClinicalTemplatesPage />} />
           <Route path="/settings/profile"   element={<ClinicianProfilePage user={user} />} />
+          <Route path="/statform"            element={<StatFormPage />} />
+          <Route path="/statform/absence-excuse" element={<AbsenceExcusePage />} />
           {/* Legacy redirects — preserve all old URLs */}
           <Route path="/psychometrics"      element={<Navigate to="/tools/assessments" replace />} />
           <Route path="/templates"          element={<Navigate to="/documentation" replace />} />

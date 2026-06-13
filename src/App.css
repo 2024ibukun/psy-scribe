@@ -2369,6 +2369,66 @@
 
 .intake-type-reset:hover { color: var(--ink); }
 
+/* ══════════════════════════════════════════
+   STATFORM — letter type grid
+══════════════════════════════════════════ */
+.statform-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 900px;
+}
+
+.statform-card {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 150ms, border-color 150ms;
+}
+
+.statform-card:hover {
+  box-shadow: 0 4px 16px rgba(10, 108, 116, 0.10);
+}
+
+.statform-card--active {
+  border-color: rgba(10, 108, 116, 0.3);
+}
+
+.statform-card--active:hover {
+  box-shadow: 0 6px 20px rgba(10, 108, 116, 0.15);
+}
+
+.statform-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.statform-card__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 750;
+  color: var(--ink);
+}
+
+.statform-card__desc {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .statform-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Pediatric form section label */
 .intake-form-section-label {
   margin: 0 0 4px;
