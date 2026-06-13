@@ -2804,6 +2804,45 @@
   color: #b91c1c;
 }
 
+/* ── Return to Work: accommodations checklist ── */
+.rtw-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.rtw-checklist__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rtw-checklist__input {
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.rtw-checklist__label {
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.rtw-other-row {
+  margin-top: 4px;
+}
+
+.rtw-other-input {
+  font-size: 0.88rem;
+}
+
 /* ── Breadcrumb link in StatForm pages ── */
 .letter-breadcrumb {
   color: var(--primary);

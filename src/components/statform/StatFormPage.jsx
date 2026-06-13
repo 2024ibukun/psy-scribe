@@ -14,7 +14,8 @@ const LETTER_TYPES = [
     id: "return-to-work",
     title: "Return to Work / School Letter",
     description: "Clear a patient to return to work or school following a medical absence.",
-    status: "coming-soon",
+    status: "active",
+    route: "/statform/return-to-work",
   },
   {
     id: "school-accommodation",
