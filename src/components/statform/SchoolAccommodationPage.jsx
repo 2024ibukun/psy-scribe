@@ -188,7 +188,7 @@ export default function SchoolAccommodationPage({ user }) {
 
     const paragraphs = [
       `${patientName.trim()} (DOB: ${dobStr}) is a patient under my care with a diagnosis of ${diagnosis.trim()}.`,
-      impactText.trim(),
+      `As a result of this diagnosis, ${patientName.trim()} experiences the following difficulties in the school setting: ${impactText.trim()}`,
       "In light of this, I am recommending the following academic accommodations:\n" + accomLines.join("\n"),
       `These accommodations are recommended ${durationPhrase}.`,
     ]
