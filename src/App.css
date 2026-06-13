@@ -184,7 +184,7 @@
 .placeholder-copy h1 {
   margin: 0;
   color: var(--ink);
-  font-size: clamp(2.55rem, 6vw, 5.3rem);
+  font-size: clamp(1.9rem, 3.5vw, 3rem);
   line-height: 0.98;
   font-weight: 820;
 }
