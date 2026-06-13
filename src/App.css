@@ -2679,6 +2679,54 @@
   font-size: 0.82em;
 }
 
+/* ── StatForm: intake loader panel (above LetterShell) ── */
+.statform-intake-loader {
+  margin-bottom: 24px;
+  padding: 14px 18px;
+  background: #f8faf9;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.statform-intake-loader__label {
+  display: block;
+  margin: 0 0 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.statform-intake-loader__select {
+  width: 100%;
+  max-width: 500px;
+  padding: 9px 13px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.statform-intake-loader__select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(10, 108, 116, 0.12);
+}
+
+.statform-intake-loader__hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.statform-intake-loader__hint--active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
 /* ── Absence Excuse: end-date toggle button ── */
 .absence-add-end-btn {
   margin-top: 7px;

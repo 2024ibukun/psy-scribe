@@ -1,5 +1,7 @@
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { Link } from "react-router-dom"
+import { collection, getDocs, query, where } from "firebase/firestore"
+import { db } from "../../firebase"
 import LetterShell from "./LetterShell"
 
 // ── Date helpers ─────────────────────────────────────────────────────────────
@@ -21,11 +23,15 @@ function fmtDateRange(startStr, endStr) {
   if (!endStr) return `${MONTHS[sm - 1]} ${sd}, ${sy}`
   const [ey, em, ed] = endStr.split("-").map(Number)
   if (sy === ey && sm === em) {
-    // Same month: "June 13–14, 2026"
     return `${MONTHS[sm - 1]} ${sd}–${ed}, ${sy}`
   }
-  // Different months: "June 13, 2026 – July 2, 2026"
   return `${MONTHS[sm - 1]} ${sd}, ${sy} – ${MONTHS[em - 1]} ${ed}, ${ey}`
+}
+
+function fmtTimestamp(ts) {
+  if (!ts) return ""
+  const d = ts.toDate ? ts.toDate() : new Date(ts.seconds ? ts.seconds * 1000 : ts)
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 }
 
 // ── Reason options ────────────────────────────────────────────────────────────
@@ -41,38 +47,75 @@ const REASON_MAP = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AbsenceExcusePage({ user }) {
-  // Core fields (patient name, DOB, letter date, credentials) live in LetterShell.
-  // onCoreChange bubbles them up here so we can use them in body assembly.
+  // ── Intake loader state ───────────────────────────────────────────────────
+  const [intakes,          setIntakes]          = useState([])
+  const [intakesLoading,   setIntakesLoading]   = useState(true)
+  const [selectedIntakeId, setSelectedIntakeId] = useState("")
+  const [nameOverride,     setNameOverride]     = useState("")
+  const [dobOverride,      setDobOverride]      = useState("")
+
+  useEffect(() => {
+    async function loadIntakes() {
+      try {
+        const q = query(
+          collection(db, "pending_intakes"),
+          where("clinicianId", "==", user.uid)
+        )
+        const snap = await getDocs(q)
+        const data = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0))
+        setIntakes(data)
+      } catch (err) {
+        console.error("[AbsenceExcusePage] intake load:", err)
+      } finally {
+        setIntakesLoading(false)
+      }
+    }
+    loadIntakes()
+  }, [user.uid])
+
+  function handleIntakeSelect(e) {
+    const id = e.target.value
+    setSelectedIntakeId(id)
+    if (!id) {
+      setNameOverride("")
+      setDobOverride("")
+      return
+    }
+    const found = intakes.find((i) => i.id === id)
+    if (found) {
+      setNameOverride(found.patientName || "")
+      setDobOverride(found.dob || "")
+    }
+  }
+
+  // ── Core fields bubbled up from LetterShell ───────────────────────────────
   const [core, setCore] = useState({
     patientName: "", patientDob: "", letterDate: "", credentials: "",
   })
+  const handleCoreChange = useCallback((c) => setCore(c), [])
 
-  // Body-specific fields
+  // ── Body-specific fields ──────────────────────────────────────────────────
   const [absenceStart,   setAbsenceStart]   = useState("")
   const [absenceEnd,     setAbsenceEnd]     = useState("")
   const [showEndDate,    setShowEndDate]    = useState(false)
   const [reasonCategory, setReasonCategory] = useState("")
   const [additionalNote, setAdditionalNote] = useState("")
 
-  // Stable reference — avoids triggering LetterShell's onCoreChange effect
-  const handleCoreChange = useCallback((c) => setCore(c), [])
-
   // ── Letter body assembly ──────────────────────────────────────────────────
   const bodyContent = useMemo(() => {
     const { patientName, patientDob } = core
-    // All four required fields must be present before we generate content
     if (!patientName.trim() || !patientDob || !absenceStart || !reasonCategory) return ""
 
-    const dateStr  = fmtDateRange(absenceStart, showEndDate && absenceEnd ? absenceEnd : "")
-    const dobStr   = fmtDate(patientDob)
-    const reason   = REASON_MAP[reasonCategory]
+    const dateStr = fmtDateRange(absenceStart, showEndDate && absenceEnd ? absenceEnd : "")
+    const dobStr  = fmtDate(patientDob)
+    const reason  = REASON_MAP[reasonCategory]
 
     const paragraphs = [
       `This letter is to confirm that ${patientName.trim()} (DOB: ${dobStr}) was seen at this office on ${dateStr} for ${reason}.`,
     ]
-    if (additionalNote.trim()) {
-      paragraphs.push(additionalNote.trim())
-    }
+    if (additionalNote.trim()) paragraphs.push(additionalNote.trim())
     paragraphs.push("Please excuse any absence from work or school related to this appointment.")
     paragraphs.push("If you have any questions, please feel free to contact our office.")
 
@@ -100,11 +143,50 @@ export default function AbsenceExcusePage({ user }) {
         </p>
       </div>
 
+      {/* ── Intake loader — full-width, above the two-panel form ── */}
+      <div className="statform-intake-loader">
+        <label className="statform-intake-loader__label" htmlFor="ae-intake-select">
+          Load patient from a recent intake{" "}
+          <span className="intake-label-optional">(optional)</span>
+        </label>
+
+        {intakesLoading ? (
+          <p className="statform-intake-loader__hint">Loading recent intakes…</p>
+        ) : intakes.length === 0 ? (
+          <p className="statform-intake-loader__hint">
+            No completed intakes on file — enter patient details manually below.
+          </p>
+        ) : (
+          <>
+            <select
+              id="ae-intake-select"
+              className="statform-intake-loader__select"
+              value={selectedIntakeId}
+              onChange={handleIntakeSelect}
+            >
+              <option value="">— Enter manually —</option>
+              {intakes.map((intake) => (
+                <option key={intake.id} value={intake.id}>
+                  {intake.patientName || "Unknown"}{fmtTimestamp(intake.createdAt) ? ` — submitted ${fmtTimestamp(intake.createdAt)}` : ""}
+                </option>
+              ))}
+            </select>
+            {selectedIntakeId && (
+              <p className="statform-intake-loader__hint statform-intake-loader__hint--active">
+                Patient name and date of birth pre-filled from intake — both fields remain editable.
+              </p>
+            )}
+          </>
+        )}
+      </div>
+
       <LetterShell
         user={user}
         bodyContent={bodyContent}
         onCoreChange={handleCoreChange}
         placeholder="Fill in patient details to preview the letter."
+        patientNameOverride={nameOverride}
+        patientDobOverride={dobOverride}
       >
         {/* ── Date(s) of absence ─────────────────────────────────────── */}
         <div className="intake-field">
