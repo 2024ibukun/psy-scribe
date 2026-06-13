@@ -35,7 +35,7 @@ function formatDate(str) {
  *                   called whenever any core field changes — use in Part 3 so the parent
  *                   can reference patient name/DOB when building bodyContent
  */
-export default function LetterShell({ user, bodyContent = "", children, onCoreChange }) {
+export default function LetterShell({ user, bodyContent = "", children, onCoreChange, placeholder = "Letter body will appear here as you fill in the fields above." }) {
   const [profile,       setProfile]       = useState(null)
   const [profileLoaded, setProfileLoaded] = useState(false)
   const [patientName,   setPatientName]   = useState("")
@@ -236,9 +236,7 @@ export default function LetterShell({ user, bodyContent = "", children, onCoreCh
                 </p>
               ))
             ) : (
-              <p className="letter-preview__placeholder">
-                Letter body will appear here as you fill in the fields above.
-              </p>
+              <p className="letter-preview__placeholder">{placeholder}</p>
             )}
           </div>
 

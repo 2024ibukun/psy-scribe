@@ -2672,6 +2672,65 @@
   color: #4a4a4a;
 }
 
+/* ── Optional label suffix ── */
+.intake-label-optional {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 0.82em;
+}
+
+/* ── Absence Excuse: end-date toggle button ── */
+.absence-add-end-btn {
+  margin-top: 7px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  display: inline-block;
+}
+
+.absence-add-end-btn:hover {
+  color: var(--primary-dark);
+}
+
+/* ── Absence Excuse: end-date row (input + remove button) ── */
+.absence-end-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.absence-end-row .intake-input {
+  flex: 1;
+}
+
+.absence-remove-end-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms, color 150ms;
+}
+
+.absence-remove-end-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
 /* ── Breadcrumb link in StatForm pages ── */
 .letter-breadcrumb {
   color: var(--primary);
