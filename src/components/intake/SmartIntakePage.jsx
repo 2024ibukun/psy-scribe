@@ -40,14 +40,16 @@ function calcAgeInfo(dobStr) {
 }
 
 function GenerateLinkPanel({ user, profile }) {
-  const [patientName,       setPatientName]       = useState("")
-  const [dob,               setDob]               = useState("")
+  const [patientName,        setPatientName]        = useState("")
+  const [dob,                setDob]                = useState("")
+  const [patientEmail,       setPatientEmail]       = useState("")
+  const [patientPhone,       setPatientPhone]       = useState("")
   const [intakeTypeOverride, setIntakeTypeOverride] = useState(null) // null = use auto
-  const [loading,           setLoading]           = useState(false)
-  const [generatedLink,     setGeneratedLink]     = useState(null)
-  const [copied,            setCopied]            = useState(false)
-  const [copiedMsg,         setCopiedMsg]         = useState(false)
-  const [error,             setError]             = useState("")
+  const [loading,            setLoading]            = useState(false)
+  const [generatedLink,      setGeneratedLink]      = useState(null)
+  const [copied,             setCopied]             = useState(false)
+  const [copiedMsg,          setCopiedMsg]          = useState(false)
+  const [error,              setError]              = useState("")
 
   // Reset override when DOB changes
   useEffect(() => { setIntakeTypeOverride(null) }, [dob])
@@ -133,6 +135,8 @@ function GenerateLinkPanel({ user, profile }) {
     setGeneratedLink(null)
     setPatientName("")
     setDob("")
+    setPatientEmail("")
+    setPatientPhone("")
     setCopied(false)
     setCopiedMsg(false)
   }
@@ -199,6 +203,35 @@ function GenerateLinkPanel({ user, profile }) {
             </div>
           )}
 
+          <div className="intake-field">
+            <label className="intake-label" htmlFor="ig-email">
+              Patient email <span className="intake-label-optional">(optional)</span>
+            </label>
+            <input
+              id="ig-email"
+              type="email"
+              className="intake-input"
+              value={patientEmail}
+              onChange={(e) => setPatientEmail(e.target.value)}
+              placeholder="patient@email.com"
+              autoComplete="off"
+            />
+          </div>
+          <div className="intake-field">
+            <label className="intake-label" htmlFor="ig-phone">
+              Patient phone <span className="intake-label-optional">(optional)</span>
+            </label>
+            <input
+              id="ig-phone"
+              type="tel"
+              className="intake-input"
+              value={patientPhone}
+              onChange={(e) => setPatientPhone(e.target.value)}
+              placeholder="e.g. 555-867-5309"
+              autoComplete="off"
+            />
+          </div>
+
           {error && <p className="intake-error">{error}</p>}
           <button type="submit" className="intake-primary-btn" disabled={loading}>
             {loading ? "Generating…" : "Generate Intake Link"}
@@ -222,6 +255,41 @@ function GenerateLinkPanel({ user, profile }) {
                 New Link
               </button>
             </div>
+            {(patientEmail.trim() || patientPhone.trim()) && (
+              <div className="intake-send-actions">
+                {patientEmail.trim() && (() => {
+                  const subject = encodeURIComponent("Your intake form for your upcoming appointment")
+                  const body = encodeURIComponent(
+                    "Please complete your intake form before your visit using the secure link below." +
+                    " It takes about 10 minutes and does not require creating an account.\n\n" +
+                    generatedLink + "\n\n" +
+                    "This link expires in 14 days and can only be used once.\n\n" +
+                    "If you have any questions, please contact our office."
+                  )
+                  return (
+                    <a
+                      href={`mailto:${patientEmail.trim()}?subject=${subject}&body=${body}`}
+                      className="intake-send-btn"
+                    >
+                      Open Email Draft
+                    </a>
+                  )
+                })()}
+                {patientPhone.trim() && (() => {
+                  const body = encodeURIComponent(
+                    `Please complete your intake form before your visit: ${generatedLink} — Link expires in 14 days.`
+                  )
+                  return (
+                    <a
+                      href={`sms:${patientPhone.trim()}?body=${body}`}
+                      className="intake-send-btn"
+                    >
+                      Open SMS
+                    </a>
+                  )
+                })()}
+              </div>
+            )}
           </div>
 
           {/* Suggested message */}

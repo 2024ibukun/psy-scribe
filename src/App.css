@@ -1776,6 +1776,38 @@
   color: #059669;
 }
 
+/* Send via email / SMS — secondary outlined, less prominent than Copy Link */
+.intake-send-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.intake-send-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1.5px solid var(--line-strong);
+  background: white;
+  color: var(--muted);
+  font-size: 0.83rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 150ms, color 150ms, background 150ms;
+}
+
+.intake-send-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #f0faf9;
+}
+
 .recent-intakes h2 {
   margin: 0 0 20px;
   font-size: 1.15rem;
