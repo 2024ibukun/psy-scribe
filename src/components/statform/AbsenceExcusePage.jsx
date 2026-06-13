@@ -1,19 +1,27 @@
 import { Link } from "react-router-dom"
+import LetterShell from "./LetterShell"
 
-export default function AbsenceExcusePage() {
+export default function AbsenceExcusePage({ user }) {
   return (
     <section className="placeholder-page">
       <div className="placeholder-copy">
-        <p className="eyebrow">StatForm — Absence Excuse Letter</p>
+        <p className="eyebrow">
+          <Link to="/statform" className="letter-breadcrumb">StatForm</Link>
+          {" / "}Absence Excuse Letter
+        </p>
         <h1>Absence Excuse Letter</h1>
         <p>
-          This letter builder is coming in the next release. Return to{" "}
-          <Link to="/statform" style={{ color: "var(--primary)", fontWeight: 700 }}>
-            StatForm
-          </Link>{" "}
-          to see all available letter types.
+          Confirm a patient's medical appointment or treatment absence for work or school.
+          Fill in the fields on the left — the letter preview updates in real time.
         </p>
       </div>
+
+      <LetterShell user={user} bodyContent="">
+        {/* Body-specific fields will be added in Part 3 */}
+        <p className="letter-shell__body-placeholder">
+          Appointment-specific fields coming soon — the letter structure is live above.
+        </p>
+      </LetterShell>
     </section>
   )
 }

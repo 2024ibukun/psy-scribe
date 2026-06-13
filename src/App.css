@@ -2429,6 +2429,309 @@
   }
 }
 
+/* ══════════════════════════════════════════
+   STATFORM — LetterShell two-panel layout
+══════════════════════════════════════════ */
+.letter-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+/* ── Left panel ── */
+.letter-shell__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.letter-shell__clinic-block {
+  padding: 14px 18px;
+  border: 1px solid rgba(10, 108, 116, 0.2);
+  border-left: 4px solid var(--primary);
+  border-radius: 8px;
+  background: #f0faf9;
+}
+
+.letter-shell__clinic-label {
+  margin: 0 0 8px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.letter-shell__clinic-loading {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.letter-shell__clinic-missing {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.letter-shell__clinic-link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.letter-shell__clinic-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.letter-shell__clinic-name {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 750;
+  color: var(--ink);
+}
+
+.letter-shell__clinic-detail {
+  display: block;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.letter-shell__fields-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.letter-shell__fields-card .intake-field:last-child {
+  margin-bottom: 0;
+}
+
+.letter-shell__body-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.letter-shell__divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 18px 0 16px;
+}
+
+.letter-shell__body-placeholder {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── Right panel ── */
+.letter-shell__preview-wrap {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.letter-shell__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.letter-shell__copy-btn {
+  flex: 1;
+  padding: 11px 18px;
+  border-radius: 8px;
+  border: none;
+  background: #0A6C74;
+  color: white;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.letter-shell__copy-btn:hover {
+  background: #085960;
+}
+
+.letter-shell__copy-btn--copied {
+  background: #059669;
+}
+
+.letter-shell__print-btn {
+  flex: 1;
+  padding: 11px 18px;
+  border-radius: 8px;
+  border: 1.5px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.letter-shell__print-btn:hover {
+  background: #eaf5f3;
+}
+
+/* ── Letter preview (the document itself) ── */
+.letter-preview {
+  background: white;
+  border: 1px solid #d0d7de;
+  border-radius: 10px;
+  padding: 48px 52px;
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.09);
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-size: 0.97rem;
+  line-height: 1.7;
+  color: #1a1a1a;
+  min-height: 540px;
+}
+
+.letter-preview__letterhead {
+  margin-bottom: 28px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+.letter-preview__lh-name {
+  margin: 0 0 3px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #1a1a1a;
+}
+
+.letter-preview__lh-meta {
+  margin: 0;
+  font-size: 0.87rem;
+  color: #4a4a4a;
+}
+
+.letter-preview__date {
+  margin: 0 0 22px;
+  font-size: 0.92rem;
+  color: #1a1a1a;
+}
+
+.letter-preview__salutation {
+  margin: 0 0 18px;
+  color: #1a1a1a;
+}
+
+.letter-preview__body {
+  margin-bottom: 28px;
+}
+
+.letter-preview__para {
+  margin: 0 0 14px;
+  color: #1a1a1a;
+}
+
+.letter-preview__placeholder {
+  margin: 0;
+  color: #8a8a8a;
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", Times, serif;
+}
+
+.letter-preview__signature {
+  margin-top: 12px;
+}
+
+.letter-preview__sign-close {
+  margin: 0 0 4px;
+  color: #1a1a1a;
+}
+
+.letter-preview__sign-gap {
+  height: 40px;
+}
+
+.letter-preview__sign-name {
+  margin: 0 0 2px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.letter-preview__sign-line {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #4a4a4a;
+}
+
+/* ── Breadcrumb link in StatForm pages ── */
+.letter-breadcrumb {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.letter-breadcrumb:hover {
+  text-decoration: underline;
+}
+
+/* ── Mobile: stack panels ── */
+@media (max-width: 860px) {
+  .letter-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .letter-shell__preview-wrap {
+    position: static;
+  }
+
+  .letter-preview {
+    padding: 32px 28px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   PRINT — show only letter-preview, no app chrome
+══════════════════════════════════════════ */
+@media print {
+  /* Hide everything */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Reveal only the letter preview and all its descendants */
+  #letter-preview-printable,
+  #letter-preview-printable * {
+    visibility: visible;
+  }
+
+  /* Place the preview at the top of the printed page */
+  #letter-preview-printable {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0.75in 1in;
+    font-size: 12pt;
+    line-height: 1.65;
+    background: white;
+    min-height: auto;
+  }
+
+  .letter-preview__lh-name {
+    font-size: 14pt;
+  }
+}
+
 /* Pediatric form section label */
 .intake-form-section-label {
   margin: 0 0 4px;

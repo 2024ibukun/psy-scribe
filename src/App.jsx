@@ -420,7 +420,7 @@ function AuthenticatedApp({ user }) {
           <Route path="/documentation"      element={<ClinicalTemplatesPage />} />
           <Route path="/settings/profile"   element={<ClinicianProfilePage user={user} />} />
           <Route path="/statform"            element={<StatFormPage />} />
-          <Route path="/statform/absence-excuse" element={<AbsenceExcusePage />} />
+          <Route path="/statform/absence-excuse" element={<AbsenceExcusePage user={user} />} />
           {/* Legacy redirects — preserve all old URLs */}
           <Route path="/psychometrics"      element={<Navigate to="/tools/assessments" replace />} />
           <Route path="/templates"          element={<Navigate to="/documentation" replace />} />
