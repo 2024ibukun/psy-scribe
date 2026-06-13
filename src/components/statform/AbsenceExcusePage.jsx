@@ -44,6 +44,10 @@ const REASON_MAP = {
   "Evaluation":          "a clinical evaluation",
 }
 
+// ── sessionStorage key ────────────────────────────────────────────────────────
+
+const STORAGE_KEY = "statform-absence-excuse-v1"
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AbsenceExcusePage({ user }) {
@@ -103,6 +107,46 @@ export default function AbsenceExcusePage({ user }) {
   const [reasonCategory, setReasonCategory] = useState("")
   const [additionalNote, setAdditionalNote] = useState("")
 
+  // ── sessionStorage: restore on mount ─────────────────────────────────────
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(STORAGE_KEY)
+      if (!saved) return
+      const s = JSON.parse(saved)
+      if (s.absenceStart)     setAbsenceStart(s.absenceStart)
+      if (s.absenceEnd)       setAbsenceEnd(s.absenceEnd)
+      if (s.showEndDate)      setShowEndDate(s.showEndDate)
+      if (s.reasonCategory)   setReasonCategory(s.reasonCategory)
+      if (s.additionalNote)   setAdditionalNote(s.additionalNote)
+      if (s.nameOverride)     setNameOverride(s.nameOverride)
+      if (s.dobOverride)      setDobOverride(s.dobOverride)
+      if (s.selectedIntakeId) setSelectedIntakeId(s.selectedIntakeId)
+    } catch { /* silent */ }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── sessionStorage: save on every relevant change ────────────────────────
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+        absenceStart, absenceEnd, showEndDate, reasonCategory,
+        additionalNote, nameOverride, dobOverride, selectedIntakeId,
+      }))
+    } catch { /* silent */ }
+  }, [absenceStart, absenceEnd, showEndDate, reasonCategory, additionalNote, nameOverride, dobOverride, selectedIntakeId])
+
+  // ── Clear form ────────────────────────────────────────────────────────────
+  function handleClearForm() {
+    setAbsenceStart("")
+    setAbsenceEnd("")
+    setShowEndDate(false)
+    setReasonCategory("")
+    setAdditionalNote("")
+    setNameOverride("")
+    setDobOverride("")
+    setSelectedIntakeId("")
+    try { sessionStorage.removeItem(STORAGE_KEY) } catch { /* silent */ }
+  }
+
   // ── Letter body assembly ──────────────────────────────────────────────────
   const bodyContent = useMemo(() => {
     const { patientName, patientDob } = core
@@ -145,10 +189,15 @@ export default function AbsenceExcusePage({ user }) {
 
       {/* ── Intake loader — full-width, above the two-panel form ── */}
       <div className="statform-intake-loader">
-        <label className="statform-intake-loader__label" htmlFor="ae-intake-select">
-          Load patient from a recent intake{" "}
-          <span className="intake-label-optional">(optional)</span>
-        </label>
+        <div className="statform-intake-loader__header">
+          <label className="statform-intake-loader__label" htmlFor="ae-intake-select">
+            Load patient from a recent intake{" "}
+            <span className="intake-label-optional">(optional)</span>
+          </label>
+          <button type="button" className="statform-clear-btn" onClick={handleClearForm}>
+            Clear form
+          </button>
+        </div>
 
         {intakesLoading ? (
           <p className="statform-intake-loader__hint">Loading recent intakes…</p>

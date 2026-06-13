@@ -2688,9 +2688,34 @@
   border-radius: 10px;
 }
 
+.statform-intake-loader__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 10px;
+}
+
+.statform-clear-btn {
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.statform-clear-btn:hover {
+  color: var(--ink);
+}
+
 .statform-intake-loader__label {
   display: block;
-  margin: 0 0 10px;
   font-size: 0.84rem;
   font-weight: 700;
   color: var(--ink);
@@ -2809,27 +2834,35 @@
    PRINT — show only letter-preview, no app chrome
 ══════════════════════════════════════════ */
 @media print {
-  /* Hide everything */
-  body * {
-    visibility: hidden;
+  /* Remove non-letter elements from layout entirely (display:none vs
+     visibility:hidden — the latter still occupies flow and creates phantom pages) */
+  .site-header,
+  .site-footer,
+  .placeholder-copy,
+  .statform-intake-loader,
+  .letter-shell__form,
+  .letter-shell__actions {
+    display: none !important;
   }
 
-  /* Reveal only the letter preview and all its descendants */
-  #letter-preview-printable,
-  #letter-preview-printable * {
-    visibility: visible;
+  /* Flatten the two-column grid so the preview fills the page */
+  .letter-shell {
+    display: block;
   }
 
-  /* Place the preview at the top of the printed page */
+  .letter-shell__preview-wrap {
+    position: static;
+  }
+
+  /* Letter in natural flow — page margins via @page, not padding */
   #letter-preview-printable {
-    position: fixed;
-    inset: 0;
-    width: 100%;
+    position: static !important;
+    width: 100% !important;
     max-width: none;
     border: none;
     border-radius: 0;
     box-shadow: none;
-    padding: 0.75in 1in;
+    padding: 0;
     font-size: 12pt;
     line-height: 1.65;
     background: white;
@@ -2838,6 +2871,10 @@
 
   .letter-preview__lh-name {
     font-size: 14pt;
+  }
+
+  @page {
+    margin: 0.75in 1in;
   }
 }
 
