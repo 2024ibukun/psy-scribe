@@ -8,7 +8,7 @@ import {
 import { auth, googleProvider } from "../firebase";
 
 const ACTION_CODE_SETTINGS = {
-  url: window.location.origin,
+  url: 'https://psychmetric.app/auth/action',
   handleCodeInApp: true,
 };
 
