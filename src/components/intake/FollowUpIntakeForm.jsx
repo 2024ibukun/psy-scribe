@@ -147,6 +147,7 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
         patientName:           token.patientName,
         dob:                   token.dob,
         intakeType:            "followup",
+        patientType:           token.intakeType || "adult",
         visitReason:           visitReason.trim(),
         erOrHospitalSince,
         erOrHospitalDetail:    erOrHospitalDetail.trim(),

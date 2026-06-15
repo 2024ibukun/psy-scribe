@@ -137,10 +137,94 @@ function generatePediatricSummary(intake) {
   return lines.join("\n")
 }
 
+// Pretty names used in both summary and card display for follow-up scale results
+const FOLLOWUP_SCALE_LABELS = {
+  phq9:    "PHQ-9",
+  gad7:    "GAD-7",
+  phqa:    "PHQ-A",
+  scared:  "SCARED-5",
+  scared5: "SCARED-5",
+}
+
+function generateFollowUpSummary(intake) {
+  const lines = []
+  const submittedOn = formatDate(intake.createdAt)
+
+  lines.push("Follow-Up Visit Check-In")
+  lines.push(`Patient: ${intake.patientName || "—"}`)
+  lines.push(`DOB: ${intake.dob || "—"}`)
+  lines.push(`Date: ${submittedOn}`)
+  lines.push("")
+
+  lines.push("Visit Focus:")
+  lines.push(intake.visitReason || "—")
+  lines.push("")
+
+  lines.push("Interval Safety:")
+  const erStr = intake.erOrHospitalSince === true ? "Yes" : intake.erOrHospitalSince === false ? "No" : "—"
+  if (intake.erOrHospitalSince === true && intake.erOrHospitalDetail) {
+    lines.push(`ER or hospitalization since last visit: Yes — ${intake.erOrHospitalDetail}`)
+  } else {
+    lines.push(`ER or hospitalization since last visit: ${erStr}`)
+  }
+  const safetyStr = intake.safetyFlag === true ? "Yes" : intake.safetyFlag === false ? "No" : "—"
+  lines.push(`Safety concerns: ${safetyStr}`)
+  if (intake.safetyFlag === true) {
+    lines.push("⚠ SAFETY CONCERN REPORTED — review before visit")
+  }
+  lines.push("")
+
+  lines.push("Symptom Update:")
+  lines.push(`Overall: ${intake.symptomOverall || "—"}`)
+  lines.push(`Sleep: ${intake.symptomSleep || "—"}`)
+  lines.push(`Appetite: ${intake.symptomAppetite || "—"}`)
+  lines.push("")
+
+  lines.push("Medications:")
+  const medStr = intake.medicationChanges === true ? "Yes" : intake.medicationChanges === false ? "No" : "—"
+  lines.push(`Changes since last visit: ${medStr}`)
+  if (intake.medicationChanges === true && intake.medicationChangeDetail) {
+    lines.push(`Change detail: ${intake.medicationChangeDetail}`)
+  }
+  lines.push(`Adherence: ${intake.medicationAdherence || "—"}`)
+  lines.push(`Side effects: ${intake.sideEffects || "—"}`)
+  if ((intake.sideEffects === "Moderate" || intake.sideEffects === "Severe") && intake.sideEffectDetail) {
+    lines.push(`Detail: ${intake.sideEffectDetail}`)
+  }
+  lines.push("")
+
+  lines.push("Therapy:")
+  lines.push(intake.therapyStatus || "—")
+
+  const results = intake.scaleResults || {}
+  const completedIds = Object.keys(results)
+  if (completedIds.length > 0) {
+    lines.push("")
+    lines.push("Assessments:")
+    completedIds.forEach((id) => {
+      const r = results[id]
+      const label    = FOLLOWUP_SCALE_LABELS[id] || id.toUpperCase()
+      const scoreStr = r.score !== undefined ? r.score : "—"
+      const sevStr   = r.severity || r.interpretation || "—"
+      lines.push(`${label}: ${scoreStr} — ${sevStr}`)
+      if (id === "phq9"  && r.phq9Q9Flag)    lines.push("Positive response to PHQ-9 self-harm screening item.")
+      if (id === "phqa"  && r.phqaItem9Flag) lines.push("Positive response to PHQ-A self-harm screening item.")
+    })
+  }
+
+  if (intake.anythingElse && intake.anythingElse.trim()) {
+    lines.push("")
+    lines.push("Additional Notes:")
+    lines.push(intake.anythingElse.trim())
+  }
+
+  return lines.join("\n")
+}
+
 function generateSummary(intake) {
-  return intake.intakeType === "pediatric"
-    ? generatePediatricSummary(intake)
-    : generateAdultSummary(intake)
+  if (intake.intakeType === "followup")  return generateFollowUpSummary(intake)
+  if (intake.intakeType === "pediatric") return generatePediatricSummary(intake)
+  return generateAdultSummary(intake)
 }
 
 function formatDate(ts) {
@@ -166,11 +250,14 @@ export default function IntakeCard({ intake, onMarkReviewed, onDelete }) {
   const [copied,       setCopied]       = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const isPediatric = intake.intakeType === "pediatric"
+  const isFollowUp  = intake.intakeType === "followup"
+  const isPediatric = isFollowUp
+    ? intake.patientType === "pediatric"
+    : intake.intakeType === "pediatric"
   const isReviewed  = intake.status === "reviewed"
 
-  // Safety flag fires for adult Q9 OR pediatric PHQA item 9
-  const hasSafetyFlag = intake.phq9Q9Flag || intake.phqaItem9Flag
+  // Safety flag: adult Q9, pediatric PHQA item 9, or follow-up safetyFlag
+  const hasSafetyFlag = intake.phq9Q9Flag || intake.phqaItem9Flag || intake.safetyFlag === true
 
   async function handleCopy() {
     const text = generateSummary(intake)
@@ -182,11 +269,21 @@ export default function IntakeCard({ intake, onMarkReviewed, onDelete }) {
   return (
     <div className={`intake-result-card${isReviewed ? " intake-result-card--reviewed" : ""}`}>
 
-      {/* Safety flag — same prominent red alert for both adult and pediatric */}
+      {/* Safety flag — red alert for self-harm screening (adult Q9, pediatric PHQA item 9, follow-up safetyFlag) */}
       {hasSafetyFlag && (
         <div className="intake-q9-flag" role="alert">
           <WarnIcon />
-          Positive self-harm screening item — review before visit
+          {isFollowUp
+            ? "Safety concern reported — review before visit"
+            : "Positive self-harm screening item — review before visit"}
+        </div>
+      )}
+
+      {/* ER / hospitalization warning — follow-up only */}
+      {isFollowUp && intake.erOrHospitalSince === true && (
+        <div className="intake-fu-er-warning" role="alert">
+          <WarnIcon />
+          ER or hospitalization reported since last visit
         </div>
       )}
 
@@ -198,9 +295,18 @@ export default function IntakeCard({ intake, onMarkReviewed, onDelete }) {
             <h3 className="intake-result-card__name">
               {isPediatric ? (intake.childName || intake.patientName) : intake.patientName}
             </h3>
-            <span className={`intake-type-badge intake-type-badge--${isPediatric ? "pediatric" : "adult"}`}>
-              {isPediatric ? "Pediatric" : "Adult"}
-            </span>
+            {isFollowUp ? (
+              <>
+                <span className="intake-type-badge intake-type-badge--followup">Follow-Up</span>
+                <span className={`intake-type-badge intake-type-badge--${isPediatric ? "pediatric" : "adult"}`}>
+                  {isPediatric ? "Pediatric" : "Adult"}
+                </span>
+              </>
+            ) : (
+              <span className={`intake-type-badge intake-type-badge--${isPediatric ? "pediatric" : "adult"}`}>
+                {isPediatric ? "Pediatric" : "Adult"}
+              </span>
+            )}
           </div>
           <p className="intake-result-card__date">Submitted {formatDate(intake.createdAt)}</p>
           {/* Guardian line for pediatric */}
@@ -214,16 +320,50 @@ export default function IntakeCard({ intake, onMarkReviewed, onDelete }) {
         {isReviewed && <span className="intake-reviewed-badge">✓ Reviewed</span>}
       </div>
 
-      {/* Chief concern / complaint */}
-      {(intake.chiefComplaint || intake.chiefConcern) && (
+      {/* Chief concern / complaint — new patient only */}
+      {!isFollowUp && (intake.chiefComplaint || intake.chiefConcern) && (
         <p className="intake-chief-complaint">
           "{intake.chiefConcern || intake.chiefComplaint}"
         </p>
       )}
 
+      {/* Follow-up summary fields */}
+      {isFollowUp && (
+        <div className="intake-fu-summary">
+          {intake.visitReason && (
+            <p className="intake-fu-row">
+              <span className="intake-fu-label">Focus:</span> {intake.visitReason}
+            </p>
+          )}
+          {intake.symptomOverall && (
+            <p className="intake-fu-row">
+              <span className="intake-fu-label">Symptoms:</span> {intake.symptomOverall}
+            </p>
+          )}
+          {intake.medicationAdherence && (
+            <p className="intake-fu-row">
+              <span className="intake-fu-label">Medications:</span> {intake.medicationAdherence}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Scores */}
       <div className="intake-scores">
-        {isPediatric ? (
+        {isFollowUp ? (
+          // Follow-up scale results are stored nested in scaleResults object
+          Object.entries(intake.scaleResults || {}).map(([id, r]) => {
+            const label   = FOLLOWUP_SCALE_LABELS[id] || id.toUpperCase()
+            const score   = r.score
+            const sev     = r.severity || r.interpretation
+            if (score === undefined || !sev) return null
+            return (
+              <span key={id} className={`intake-score-badge ${severityClass(sev)}`}>
+                {label}: {score} — {sev}
+              </span>
+            )
+          })
+        ) : isPediatric ? (
           <>
             {intake.phqaSeverity && (
               <span className={`intake-score-badge ${severityClass(intake.phqaSeverity)}`}>
