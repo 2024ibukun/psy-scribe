@@ -496,11 +496,13 @@ export default function App() {
     )
   }
 
-  // Firebase auth action handler — must be publicly accessible before auth resolves
-  if (location.pathname === '/__/auth/action') {
+  // Firebase auth action handler — must be publicly accessible before auth resolves.
+  // Path is /auth/action (not /__/auth/action — Firebase reserves that namespace for
+  // Firebase Hosting and rejects it as a custom action URL in the console).
+  if (location.pathname === '/auth/action') {
     return (
       <Routes>
-        <Route path="/__/auth/action" element={<AuthAction />} />
+        <Route path="/auth/action" element={<AuthAction />} />
       </Routes>
     )
   }
