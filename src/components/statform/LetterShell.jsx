@@ -53,6 +53,10 @@ export default function LetterShell({
   const [copied,        setCopied]        = useState(false)
 
   useEffect(() => {
+    if (!user) {
+      setProfileLoaded(true)
+      return
+    }
     async function loadProfile() {
       try {
         const snap = await getDoc(doc(db, "clinicianProfiles", user.uid))
@@ -64,7 +68,7 @@ export default function LetterShell({
       }
     }
     loadProfile()
-  }, [user.uid])
+  }, [user?.uid])
 
   // Pre-fill patient name / DOB when the parent selects a recent intake
   useEffect(() => { setPatientName(patientNameOverride) }, [patientNameOverride])
@@ -122,10 +126,16 @@ export default function LetterShell({
         {/* Clinic identity — read-only */}
         <div className="letter-shell__clinic-block">
           <p className="letter-shell__clinic-label">Clinic Identity</p>
-          {!profileLoaded && (
+          {!user && (
+            <p className="letter-shell__clinic-missing">
+              <Link to="/login" className="letter-shell__clinic-link">Sign in</Link>
+              {" "}to load your clinic letterhead.
+            </p>
+          )}
+          {user && !profileLoaded && (
             <p className="letter-shell__clinic-loading">Loading profile…</p>
           )}
-          {profileLoaded && !profile?.clinicName && !profile?.clinicianName && (
+          {user && profileLoaded && !profile?.clinicName && !profile?.clinicianName && (
             <p className="letter-shell__clinic-missing">
               No profile set.{" "}
               <Link to="/settings/profile" className="letter-shell__clinic-link">
@@ -133,7 +143,7 @@ export default function LetterShell({
               </Link>
             </p>
           )}
-          {profileLoaded && (profile?.clinicName || profile?.clinicianName) && (
+          {user && profileLoaded && (profile?.clinicName || profile?.clinicianName) && (
             <div className="letter-shell__clinic-rows">
               {profile.clinicName && (
                 <span className="letter-shell__clinic-name">{profile.clinicName}</span>

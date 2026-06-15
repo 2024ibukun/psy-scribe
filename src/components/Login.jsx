@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -18,6 +18,14 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState({ type: "", message: "" });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const flash = sessionStorage.getItem("authFlash");
+    if (flash) {
+      sessionStorage.removeItem("authFlash");
+      setStatus({ type: "info", message: flash });
+    }
+  }, []);
 
   function setError(message) { setStatus({ type: "error", message }); }
   function setInfo(message) { setStatus({ type: "info", message }); }

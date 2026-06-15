@@ -13,6 +13,7 @@ import AbsenceExcusePage from './components/statform/AbsenceExcusePage'
 import ReturnToWorkPage from './components/statform/ReturnToWorkPage'
 import SchoolAccommodationPage from './components/statform/SchoolAccommodationPage'
 import HousingAccommodationPage from './components/statform/HousingAccommodationPage'
+import AuthAction from './components/AuthAction'
 import './App.css'
 
 // ── Hero preview cards ──
@@ -257,7 +258,11 @@ function Header({ user }) {
         />
         <NavLink to="/statform">StatForm</NavLink>
       </nav>
-      <AvatarMenu user={user} />
+      {user ? (
+        <AvatarMenu user={user} />
+      ) : (
+        <NavLink to="/login" className="nav-sign-in">Sign in</NavLink>
+      )}
     </header>
   )
 }
@@ -409,27 +414,59 @@ function ClinicalTemplatesPage() {
 }
 
 // ─────────────────────────────────────────────
-// Root authenticated app
+// PrivateRoute — redirects to /login when not authenticated.
+// Shows a loading spinner while auth state is still resolving.
 // ─────────────────────────────────────────────
-function AuthenticatedApp({ user }) {
+function PrivateRoute({ user, children }) {
+  if (user === undefined) {
+    return (
+      <div className="app-shell auth-loading" aria-label="Loading">
+        <span className="logo-wrap">
+          <img src="/logo.png" alt="PsychMetric" className="loading-logo" />
+        </span>
+      </div>
+    )
+  }
+  if (!user) return <Navigate to="/login" replace />
+  return children
+}
+
+// ─────────────────────────────────────────────
+// AppShell — renders for all visitors (authed or not).
+// Public routes render freely; protected routes are wrapped
+// in PrivateRoute.
+// ─────────────────────────────────────────────
+function AppShell({ user }) {
   return (
     <div className="app-shell">
       <Header user={user} />
       <main>
         <Routes>
-          <Route path="/"                   element={<HomePage />} />
-          <Route path="/tools/assessments"  element={<AssessmentsPage />} />
-          <Route path="/tools/intake"       element={<SmartIntakePage user={user} />} />
-          <Route path="/documentation"      element={<ClinicalTemplatesPage />} />
-          <Route path="/settings/profile"   element={<ClinicianProfilePage user={user} />} />
-          <Route path="/statform"            element={<StatFormPage />} />
-          <Route path="/statform/absence-excuse"  element={<AbsenceExcusePage user={user} />} />
+          {/* ── Public routes ── */}
+          <Route path="/"                              element={<HomePage />} />
+          <Route path="/statform"                      element={<StatFormPage />} />
+          <Route path="/statform/absence-excuse"       element={<AbsenceExcusePage user={user} />} />
           <Route path="/statform/return-to-work"       element={<ReturnToWorkPage user={user} />} />
-          <Route path="/statform/school-accommodation"  element={<SchoolAccommodationPage user={user} />} />
+          <Route path="/statform/school-accommodation" element={<SchoolAccommodationPage user={user} />} />
           <Route path="/statform/housing-accommodation" element={<HousingAccommodationPage user={user} />} />
+
+          {/* ── Protected routes ── */}
+          <Route path="/tools/assessments" element={
+            <PrivateRoute user={user}><AssessmentsPage /></PrivateRoute>
+          } />
+          <Route path="/tools/intake" element={
+            <PrivateRoute user={user}><SmartIntakePage user={user} /></PrivateRoute>
+          } />
+          <Route path="/documentation" element={
+            <PrivateRoute user={user}><ClinicalTemplatesPage /></PrivateRoute>
+          } />
+          <Route path="/settings/profile" element={
+            <PrivateRoute user={user}><ClinicianProfilePage user={user} /></PrivateRoute>
+          } />
+
           {/* Legacy redirects — preserve all old URLs */}
-          <Route path="/psychometrics"      element={<Navigate to="/tools/assessments" replace />} />
-          <Route path="/templates"          element={<Navigate to="/documentation" replace />} />
+          <Route path="/psychometrics" element={<Navigate to="/tools/assessments" replace />} />
+          <Route path="/templates"     element={<Navigate to="/documentation" replace />} />
         </Routes>
       </main>
       <footer className="site-footer">
@@ -459,17 +496,29 @@ export default function App() {
     )
   }
 
-  if (user === undefined) {
+  // Firebase auth action handler — must be publicly accessible before auth resolves
+  if (location.pathname === '/__/auth/action') {
     return (
-      <div className="app-shell auth-loading" aria-label="Loading">
-        <span className="logo-wrap">
-          <img src="/logo.png" alt="PsychMetric" className="loading-logo" />
-        </span>
-      </div>
+      <Routes>
+        <Route path="/__/auth/action" element={<AuthAction />} />
+      </Routes>
     )
   }
 
-  if (!user) return <Login />
+  // Login page — standalone, outside the main shell
+  if (location.pathname === '/login') {
+    if (user === undefined) {
+      return (
+        <div className="app-shell auth-loading" aria-label="Loading">
+          <span className="logo-wrap">
+            <img src="/logo.png" alt="PsychMetric" className="loading-logo" />
+          </span>
+        </div>
+      )
+    }
+    if (user) return <Navigate to="/" replace />
+    return <Login />
+  }
 
-  return <AuthenticatedApp user={user} />
+  return <AppShell user={user} />
 }

@@ -62,6 +62,10 @@ export default function SchoolAccommodationPage({ user }) {
   const [dobOverride,      setDobOverride]      = useState("")
 
   useEffect(() => {
+    if (!user) {
+      setIntakesLoading(false)
+      return
+    }
     async function loadIntakes() {
       try {
         const q = query(
@@ -80,7 +84,7 @@ export default function SchoolAccommodationPage({ user }) {
       }
     }
     loadIntakes()
-  }, [user.uid])
+  }, [user?.uid])
 
   function handleIntakeSelect(e) {
     const id = e.target.value
@@ -226,7 +230,12 @@ export default function SchoolAccommodationPage({ user }) {
           </button>
         </div>
 
-        {intakesLoading ? (
+        {!user ? (
+          <p className="statform-intake-loader__hint">
+            <Link to="/login" className="letter-shell__clinic-link">Sign in</Link>
+            {" "}to load a patient from a recent intake.
+          </p>
+        ) : intakesLoading ? (
           <p className="statform-intake-loader__hint">Loading recent intakes…</p>
         ) : intakes.length === 0 ? (
           <p className="statform-intake-loader__hint">
