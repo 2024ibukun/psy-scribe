@@ -15,6 +15,7 @@ import PHQA from "../scales/PHQA"
 import SCARED from "../scales/SCARED"
 import ClinicIdentityBanner from "./ClinicIdentityBanner"
 import PediatricIntakeForm from "./PediatricIntakeForm"
+import FollowUpIntakeForm from "./FollowUpIntakeForm"
 
 // ─────────────────────────────────────────────
 // Intake form configuration — config-driven so
@@ -469,6 +470,8 @@ export default function IntakePage() {
   // ── Adult path ──
   function handleVerified(first) {
     setFirstName(first)
+    // Branch to follow-up form if the token specifies it
+    if (tokenData?.visitType === "followup") { setStep("followup"); return }
     // Branch to pediatric form if the token specifies it
     setStep(tokenData?.intakeType === "pediatric" ? "ped-form" : "form")
   }
@@ -758,6 +761,11 @@ export default function IntakePage() {
               Try Again
             </button>
           </div>
+        )}
+
+        {/* ── Follow-up form — handles its own banner, sections, and submission ── */}
+        {step === "followup" && tokenData && (
+          <FollowUpIntakeForm token={tokenData} clinicianProfile={clinicProfile} />
         )}
 
         {step === "done" && <StepDone />}
