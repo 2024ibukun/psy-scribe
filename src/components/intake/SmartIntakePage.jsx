@@ -18,6 +18,19 @@ import IntakeCard from "./IntakeCard"
 
 const EXPIRY_DAYS = 14
 
+const ADULT_SCALES = [
+  { id: "phq9",   label: "PHQ-9" },
+  { id: "gad7",   label: "GAD-7" },
+  { id: "pcl5",   label: "PCL-5" },
+  { id: "auditc", label: "AUDIT-C" },
+]
+
+const PEDIATRIC_SCALES = [
+  { id: "phqa",    label: "PHQ-A" },
+  { id: "scared5", label: "SCARED-5" },
+  { id: "crafft",  label: "CRAFFT" },
+]
+
 function generateToken() {
   const raw = crypto.randomUUID().replace(/-/g, "")
   return "pt_" + raw.slice(0, 8)
@@ -45,6 +58,8 @@ function GenerateLinkPanel({ user, profile }) {
   const [patientEmail,       setPatientEmail]       = useState("")
   const [patientPhone,       setPatientPhone]       = useState("")
   const [intakeTypeOverride, setIntakeTypeOverride] = useState(null) // null = use auto
+  const [visitType,          setVisitType]          = useState("new")
+  const [selectedScales,     setSelectedScales]     = useState([])
   const [loading,            setLoading]            = useState(false)
   const [generatedLink,      setGeneratedLink]      = useState(null)
   const [copied,             setCopied]             = useState(false)
@@ -53,6 +68,9 @@ function GenerateLinkPanel({ user, profile }) {
 
   // Reset override when DOB changes
   useEffect(() => { setIntakeTypeOverride(null) }, [dob])
+
+  // Reset selected scales when switching back to new patient
+  useEffect(() => { if (visitType === "new") setSelectedScales([]) }, [visitType])
 
   const ageInfo       = calcAgeInfo(dob)
   const effectiveType = intakeTypeOverride ?? ageInfo?.autoType ?? "adult"
@@ -87,6 +105,8 @@ function GenerateLinkPanel({ user, profile }) {
           patientName: patientName.trim(),
           dob,
           intakeType: effectiveType,
+          visitType,
+          selectedScales,
           status: "pending",
           createdAt: serverTimestamp(),
           expiresAt,
@@ -137,6 +157,8 @@ function GenerateLinkPanel({ user, profile }) {
     setDob("")
     setPatientEmail("")
     setPatientPhone("")
+    setVisitType("new")
+    setSelectedScales([])
     setCopied(false)
     setCopiedMsg(false)
   }
@@ -151,6 +173,27 @@ function GenerateLinkPanel({ user, profile }) {
 
       {!generatedLink ? (
         <form className="intake-generate-form" onSubmit={handleGenerate} noValidate>
+          {/* Visit type toggle */}
+          <div className="intake-field">
+            <p className="intake-label" id="ig-visit-type-label">Visit type</p>
+            <div className="intake-chips" role="group" aria-labelledby="ig-visit-type-label">
+              {[
+                { id: "new",      label: "New Patient" },
+                { id: "followup", label: "Follow-Up" },
+              ].map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={`intake-chip${visitType === id ? " intake-chip--selected" : ""}`}
+                  onClick={() => setVisitType(id)}
+                  aria-pressed={visitType === id}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="intake-field">
             <label className="intake-label" htmlFor="ig-name">Patient Name</label>
             <input
@@ -200,6 +243,37 @@ function GenerateLinkPanel({ user, profile }) {
                   ↩ Auto
                 </button>
               )}
+            </div>
+          )}
+
+          {/* Follow-up scales selector — only shown when Follow-Up is selected */}
+          {visitType === "followup" && (
+            <div className="intake-field">
+              <p className="intake-label" id="ig-scales-label">
+                Include assessments <span className="intake-label-optional">(optional)</span>
+              </p>
+              <p className="intake-field-helper">
+                All unchecked by default. Select only what you need for this visit.
+              </p>
+              <div className="rtw-checklist" role="group" aria-labelledby="ig-scales-label">
+                {(effectiveType === "pediatric" ? PEDIATRIC_SCALES : ADULT_SCALES).map((scale) => (
+                  <label key={scale.id} className="rtw-checklist__item">
+                    <input
+                      type="checkbox"
+                      className="rtw-checklist__input"
+                      checked={selectedScales.includes(scale.id)}
+                      onChange={() =>
+                        setSelectedScales((prev) =>
+                          prev.includes(scale.id)
+                            ? prev.filter((s) => s !== scale.id)
+                            : [...prev, scale.id]
+                        )
+                      }
+                    />
+                    <span className="rtw-checklist__label">{scale.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
 
