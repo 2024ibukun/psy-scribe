@@ -69,9 +69,25 @@ function clearError(setFieldErrors, key) {
   })
 }
 
+// Local-time DOB parsing to avoid UTC-midnight off-by-one (see CLAUDE.md)
+function calcPatientAge(dobStr) {
+  if (!dobStr) return null
+  const [y, m, d] = dobStr.split("-").map(Number)
+  const born = new Date(y, m - 1, d)
+  const today = new Date()
+  let age = today.getFullYear() - born.getFullYear()
+  const mDiff = today.getMonth() - born.getMonth()
+  if (mDiff < 0 || (mDiff === 0 && today.getDate() < born.getDate())) age--
+  return age
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function FollowUpIntakeForm({ token, clinicianProfile }) {
+  // Use parent/guardian language when patient is under 14
+  const patientAgeYears = calcPatientAge(token.dob)
+  const p = patientAgeYears !== null && patientAgeYears < 14
+
   // Section 1 — Visit Reason
   const [visitReason, setVisitReason] = useState("")
 
@@ -247,7 +263,7 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
       <Section title="Today's Visit">
         <div className="intake-field">
           <label className="intake-label" htmlFor="fu-visit-reason">
-            What would you like to focus on during today's visit?
+            {p ? "What would you like to focus on during your child's visit today?" : "What would you like to focus on during today's visit?"}
             <span className="intake-label-required" aria-hidden="true"> *</span>
           </label>
           <textarea
@@ -269,12 +285,12 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
       </Section>
 
       {/* ── Section 2 — Interval Safety ──────────────────────────────────── */}
-      <Section title="Since your last appointment">
+      <Section title={p ? "Since your child's last appointment..." : "Since your last appointment"}>
 
         {/* Q1 — ER / Hospitalization */}
         <div className="intake-field">
           <p className="intake-label">
-            Have you been to an emergency room or been hospitalized for any reason?
+            {p ? "Has your child been to an emergency room or been hospitalized for any reason?" : "Have you been to an emergency room or been hospitalized for any reason?"}
             <span className="intake-label-required" aria-hidden="true"> *</span>
           </p>
           <ChipGroup
@@ -311,7 +327,7 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
         {/* Q2 — Safety (silent flag — no crisis message shown to patient) */}
         <div className="intake-field" style={{ marginTop: "20px" }}>
           <p className="intake-label">
-            Have you had any thoughts of hurting yourself or others?
+            {p ? "Has your child had any thoughts of hurting themselves or others?" : "Have you had any thoughts of hurting yourself or others?"}
             <span className="intake-label-required" aria-hidden="true"> *</span>
           </p>
           <ChipGroup
@@ -331,11 +347,11 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
       </Section>
 
       {/* ── Section 3 — Symptoms ─────────────────────────────────────────── */}
-      <Section title="How have you been since your last visit?">
+      <Section title={p ? "How has your child been since their last visit?" : "How have you been since your last visit?"}>
 
         <div className="intake-field">
           <p className="intake-label">
-            Overall, how have your symptoms been?
+            {p ? "Overall, how have your child's symptoms been?" : "Overall, how have your symptoms been?"}
             <span className="intake-label-required" aria-hidden="true"> *</span>
           </p>
           <ChipGroup
@@ -358,7 +374,7 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
 
         <div className="intake-field" style={{ marginTop: "20px" }}>
           <p className="intake-label">
-            How has your sleep been?
+            {p ? "How has your child's sleep been?" : "How has your sleep been?"}
             <span className="intake-label-required" aria-hidden="true"> *</span>
           </p>
           <ChipGroup
@@ -379,7 +395,7 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
 
         <div className="intake-field" style={{ marginTop: "20px" }}>
           <p className="intake-label">
-            How has your appetite been?
+            {p ? "How has your child's appetite been?" : "How has your appetite been?"}
             <span className="intake-label-required" aria-hidden="true"> *</span>
           </p>
           <ChipGroup
@@ -404,7 +420,7 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
 
         <div className="intake-field">
           <p className="intake-label">
-            Have there been any changes to your medications since your last visit?
+            {p ? "Have there been any changes to your child's medications since their last visit?" : "Have there been any changes to your medications since your last visit?"}
             <span className="intake-label-required" aria-hidden="true"> *</span>
           </p>
           <ChipGroup
@@ -440,7 +456,7 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
 
         <div className="intake-field" style={{ marginTop: "20px" }}>
           <p className="intake-label">
-            How often have you been taking your medications as prescribed?
+            {p ? "How often has your child been taking their medications as prescribed?" : "How often have you been taking your medications as prescribed?"}
             <span className="intake-label-required" aria-hidden="true"> *</span>
           </p>
           <ChipGroup
@@ -463,7 +479,7 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
 
         <div className="intake-field" style={{ marginTop: "20px" }}>
           <p className="intake-label">
-            Have you experienced any side effects from your medications?
+            {p ? "Has your child experienced any side effects from their medications?" : "Have you experienced any side effects from your medications?"}
             <span className="intake-label-required" aria-hidden="true"> *</span>
           </p>
           <ChipGroup
@@ -504,7 +520,7 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
       <Section title="Therapy and Support">
         <div className="intake-field">
           <p className="intake-label">
-            Are you currently attending therapy or counseling?
+            {p ? "Is your child currently attending therapy or counseling?" : "Are you currently attending therapy or counseling?"}
             <span className="intake-label-required" aria-hidden="true"> *</span>
           </p>
           <ChipGroup
@@ -566,7 +582,7 @@ export default function FollowUpIntakeForm({ token, clinicianProfile }) {
       <Section title="Anything else?">
         <div className="intake-field">
           <label className="intake-label" htmlFor="fu-anything-else">
-            Is there anything else you would like your clinician to know before your visit?{" "}
+            {p ? "Is there anything else you would like the clinician to know about your child before the visit?" : "Is there anything else you would like your clinician to know before your visit?"}{" "}
             <span className="intake-label-optional">(optional)</span>
           </label>
           <textarea

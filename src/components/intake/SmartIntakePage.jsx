@@ -385,13 +385,16 @@ function GenerateLinkPanel({ user, profile }) {
 }
 
 // ─────────────────────────────────────────────
-// Recent Intakes Panel
+// Patient Intakes Panel
 // ─────────────────────────────────────────────
+const FORTY_EIGHT_H_MS = 48 * 60 * 60 * 1000
+
 function RecentIntakes({ user }) {
-  const [intakes, setIntakes] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState("")
-  const [view,    setView]    = useState("active")
+  const [intakes,           setIntakes]           = useState(null)
+  const [loading,           setLoading]           = useState(true)
+  const [error,             setError]             = useState("")
+  const [intakeFilter,      setIntakeFilter]      = useState("all")
+  const [showOlderReviewed, setShowOlderReviewed] = useState(false)
 
   useEffect(() => {
     async function fetchIntakes() {
@@ -417,9 +420,16 @@ function RecentIntakes({ user }) {
 
   async function handleMarkReviewed(id) {
     try {
-      await updateDoc(doc(db, "pending_intakes", id), { status: "reviewed" })
+      await updateDoc(doc(db, "pending_intakes", id), {
+        status: "reviewed",
+        reviewedAt: serverTimestamp(),
+      })
       setIntakes((prev) =>
-        prev.map((item) => item.id === id ? { ...item, status: "reviewed" } : item)
+        prev.map((item) =>
+          item.id === id
+            ? { ...item, status: "reviewed", reviewedAt: { seconds: Math.floor(Date.now() / 1000) } }
+            : item
+        )
       )
     } catch (err) {
       console.error("[SmartIntake] Mark reviewed failed:", err)
@@ -443,55 +453,114 @@ function RecentIntakes({ user }) {
   if (loading) return <p className="intake-loading">Loading recent intakes…</p>
   if (error)   return <p className="intake-error">{error}</p>
 
-  const activeIntakes   = (intakes ?? []).filter((i) => i.status === "completed" || !i.status)
-  const reviewedIntakes = (intakes ?? []).filter((i) => i.status === "reviewed")
-  const displayed       = view === "active" ? activeIntakes : reviewedIntakes
+  // ── Filter helpers ──────────────────────────────────────────────────────────
+  function matchesFilter(intake) {
+    if (intakeFilter === "followup") return intake.intakeType === "followup"
+    if (intakeFilter === "new")      return intake.intakeType !== "followup"
+    return true // "all"
+  }
+
+  function isRecentlyReviewed(intake) {
+    if (!intake.reviewedAt) return true // no timestamp → always show
+    const ms = intake.reviewedAt.seconds
+      ? intake.reviewedAt.seconds * 1000
+      : new Date(intake.reviewedAt).getTime()
+    return Date.now() - ms <= FORTY_EIGHT_H_MS
+  }
+
+  function emptyMessage(section) {
+    if (intakeFilter === "followup") return "No Follow-Up intakes in this section."
+    if (intakeFilter === "new")      return "No New Intake intakes in this section."
+    return section === "active"
+      ? "No intakes awaiting review. Share a link with a patient to get started."
+      : "No reviewed intakes yet."
+  }
+
+  const allActive   = (intakes ?? []).filter((i) => i.status === "completed" || !i.status)
+  const allReviewed = (intakes ?? []).filter((i) => i.status === "reviewed")
+
+  const filteredActive   = allActive.filter(matchesFilter)
+  const visibleReviewed  = showOlderReviewed ? allReviewed : allReviewed.filter(isRecentlyReviewed)
+  const filteredReviewed = visibleReviewed.filter(matchesFilter)
 
   return (
     <div className="recent-intakes">
-      <h2>Recent Intakes</h2>
+      <h2>Patient Intakes</h2>
 
-      <div className="intake-view-tabs" role="tablist">
-        <button
-          type="button" role="tab" aria-selected={view === "active"}
-          className={`intake-view-tab${view === "active" ? " intake-view-tab--active" : ""}`}
-          onClick={() => setView("active")}
-        >
-          Awaiting Review
-          {activeIntakes.length > 0 && (
-            <span className="intake-tab-count">{activeIntakes.length}</span>
-          )}
-        </button>
-        <button
-          type="button" role="tab" aria-selected={view === "reviewed"}
-          className={`intake-view-tab${view === "reviewed" ? " intake-view-tab--active" : ""}`}
-          onClick={() => setView("reviewed")}
-        >
-          Reviewed
-          {reviewedIntakes.length > 0 && (
-            <span className="intake-tab-count">{reviewedIntakes.length}</span>
-          )}
-        </button>
+      {/* ── Type filter tabs ── */}
+      <div className="intake-filter-tabs" role="tablist" aria-label="Filter by intake type">
+        {[
+          { id: "all",      label: "All" },
+          { id: "new",      label: "New Intake" },
+          { id: "followup", label: "Follow-Up" },
+        ].map(({ id, label }) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={intakeFilter === id}
+            className={`intake-chip${intakeFilter === id ? " intake-chip--selected" : ""}`}
+            onClick={() => setIntakeFilter(id)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {displayed.length === 0 ? (
-        <p className="intake-empty-state">
-          {view === "active"
-            ? "No intakes awaiting review. Share a link with a patient to get started."
-            : "No reviewed intakes yet."}
-        </p>
-      ) : (
-        <div className="intake-results-grid">
-          {displayed.map((intake) => (
-            <IntakeCard
-              key={intake.id}
-              intake={intake}
-              onMarkReviewed={view === "active" ? handleMarkReviewed : null}
-              onDelete={handleDelete}
-            />
-          ))}
+      {/* ── Awaiting Review section ── */}
+      <div className="intake-section">
+        <div className="intake-section-header">
+          <h3 className="intake-section-title">
+            Awaiting Review
+            {filteredActive.length > 0 && (
+              <span className="intake-tab-count">{filteredActive.length}</span>
+            )}
+          </h3>
         </div>
-      )}
+        {filteredActive.length === 0 ? (
+          <p className="intake-empty-state">{emptyMessage("active")}</p>
+        ) : (
+          <div className="intake-results-grid">
+            {filteredActive.map((intake) => (
+              <IntakeCard
+                key={intake.id}
+                intake={intake}
+                onMarkReviewed={handleMarkReviewed}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Reviewed section ── */}
+      <div className="intake-section">
+        <div className="intake-section-header">
+          <h3 className="intake-section-title">Reviewed</h3>
+          <label className="intake-older-toggle">
+            <input
+              type="checkbox"
+              checked={showOlderReviewed}
+              onChange={(e) => setShowOlderReviewed(e.target.checked)}
+            />
+            Show older reviewed intakes
+          </label>
+        </div>
+        {filteredReviewed.length === 0 ? (
+          <p className="intake-empty-state">{emptyMessage("reviewed")}</p>
+        ) : (
+          <div className="intake-results-grid">
+            {filteredReviewed.map((intake) => (
+              <IntakeCard
+                key={intake.id}
+                intake={intake}
+                onMarkReviewed={null}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       <p className="intake-footer-note">
         Intakes are temporary. Copy the summary to your EMR, then mark reviewed or delete.

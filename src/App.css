@@ -2068,6 +2068,55 @@
   color: white;
 }
 
+/* Intake type filter chips row */
+.intake-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+/* Awaiting Review / Reviewed section wrappers */
+.intake-section {
+  margin-bottom: 32px;
+}
+
+.intake-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--line);
+}
+
+.intake-section-header .intake-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Show older reviewed intakes toggle */
+.intake-older-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.intake-older-toggle input[type="checkbox"] {
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
 /* Reviewed badge */
 .intake-reviewed-badge {
   display: inline-flex;
