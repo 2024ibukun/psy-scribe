@@ -320,35 +320,7 @@ export default function IntakeCard({ intake, onMarkReviewed, onDelete }) {
         {isReviewed && <span className="intake-reviewed-badge">✓ Reviewed</span>}
       </div>
 
-      {/* Chief concern / complaint — new patient only */}
-      {!isFollowUp && (intake.chiefComplaint || intake.chiefConcern) && (
-        <p className="intake-chief-complaint">
-          "{intake.chiefConcern || intake.chiefComplaint}"
-        </p>
-      )}
-
-      {/* Follow-up summary fields */}
-      {isFollowUp && (
-        <div className="intake-fu-summary">
-          {intake.visitReason && (
-            <p className="intake-fu-row">
-              <span className="intake-fu-label">Focus:</span> {intake.visitReason}
-            </p>
-          )}
-          {intake.symptomOverall && (
-            <p className="intake-fu-row">
-              <span className="intake-fu-label">Symptoms:</span> {intake.symptomOverall}
-            </p>
-          )}
-          {intake.medicationAdherence && (
-            <p className="intake-fu-row">
-              <span className="intake-fu-label">Medications:</span> {intake.medicationAdherence}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Scores */}
+      {/* Scores — always visible at a glance */}
       <div className="intake-scores">
         {isFollowUp ? (
           // Follow-up scale results are stored nested in scaleResults object
@@ -396,7 +368,7 @@ export default function IntakeCard({ intake, onMarkReviewed, onDelete }) {
       <div className="intake-result-actions">
         <button type="button" className="intake-result-btn"
           onClick={() => setShowSummary((v) => !v)}>
-          {showSummary ? "Hide Summary" : "Generate Summary"}
+          {showSummary ? "Hide Summary" : "Show Summary"}
         </button>
 
         {showSummary && (
@@ -445,7 +417,37 @@ export default function IntakeCard({ intake, onMarkReviewed, onDelete }) {
       )}
 
       {showSummary && (
-        <pre className="intake-summary-panel">{generateSummary(intake)}</pre>
+        <>
+          {/* Chief concern / complaint — new patient only */}
+          {!isFollowUp && (intake.chiefComplaint || intake.chiefConcern) && (
+            <p className="intake-chief-complaint">
+              "{intake.chiefConcern || intake.chiefComplaint}"
+            </p>
+          )}
+
+          {/* Follow-up summary fields */}
+          {isFollowUp && (
+            <div className="intake-fu-summary">
+              {intake.visitReason && (
+                <p className="intake-fu-row">
+                  <span className="intake-fu-label">Focus:</span> {intake.visitReason}
+                </p>
+              )}
+              {intake.symptomOverall && (
+                <p className="intake-fu-row">
+                  <span className="intake-fu-label">Symptoms:</span> {intake.symptomOverall}
+                </p>
+              )}
+              {intake.medicationAdherence && (
+                <p className="intake-fu-row">
+                  <span className="intake-fu-label">Medications:</span> {intake.medicationAdherence}
+                </p>
+              )}
+            </div>
+          )}
+
+          <pre className="intake-summary-panel">{generateSummary(intake)}</pre>
+        </>
       )}
     </div>
   )
