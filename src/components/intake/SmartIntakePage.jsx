@@ -395,6 +395,7 @@ function RecentIntakes({ user }) {
   const [error,             setError]             = useState("")
   const [intakeFilter,      setIntakeFilter]      = useState("all")
   const [showOlderReviewed, setShowOlderReviewed] = useState(false)
+  const [showReviewed,      setShowReviewed]      = useState(false)
 
   useEffect(() => {
     async function fetchIntakes() {
@@ -533,32 +534,51 @@ function RecentIntakes({ user }) {
         )}
       </div>
 
-      {/* ── Reviewed section ── */}
+      {/* ── Reviewed section — collapsed by default ── */}
       <div className="intake-section">
-        <div className="intake-section-header">
-          <h3 className="intake-section-title">Reviewed</h3>
-          <label className="intake-older-toggle">
-            <input
-              type="checkbox"
-              checked={showOlderReviewed}
-              onChange={(e) => setShowOlderReviewed(e.target.checked)}
-            />
-            Show older reviewed intakes
-          </label>
-        </div>
-        {filteredReviewed.length === 0 ? (
-          <p className="intake-empty-state">{emptyMessage("reviewed")}</p>
-        ) : (
-          <div className="intake-results-grid">
-            {filteredReviewed.map((intake) => (
-              <IntakeCard
-                key={intake.id}
-                intake={intake}
-                onMarkReviewed={null}
-                onDelete={handleDelete}
+        <button
+          type="button"
+          className="intake-reviewed-toggle-header"
+          onClick={() => setShowReviewed((v) => !v)}
+          aria-expanded={showReviewed}
+        >
+          <span className="intake-section-title">
+            Reviewed
+            {filteredReviewed.length > 0 && (
+              <span className="intake-tab-count">{filteredReviewed.length}</span>
+            )}
+          </span>
+          <span className="intake-reviewed-chevron" aria-hidden="true">
+            {showReviewed ? "▲" : "▼"}
+          </span>
+        </button>
+
+        {showReviewed && (
+          <>
+            <label className="intake-older-toggle" style={{ marginBottom: "12px" }}>
+              <input
+                type="checkbox"
+                checked={showOlderReviewed}
+                onChange={(e) => setShowOlderReviewed(e.target.checked)}
               />
-            ))}
-          </div>
+              Show older reviewed intakes
+            </label>
+
+            {filteredReviewed.length === 0 ? (
+              <p className="intake-empty-state">{emptyMessage("reviewed")}</p>
+            ) : (
+              <div className="intake-results-grid">
+                {filteredReviewed.map((intake) => (
+                  <IntakeCard
+                    key={intake.id}
+                    intake={intake}
+                    onMarkReviewed={null}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 

@@ -2101,6 +2101,31 @@
   color: var(--text);
 }
 
+/* Reviewed section collapsible header button */
+.intake-reviewed-toggle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--line);
+  margin-bottom: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.intake-reviewed-toggle-header:hover .intake-section-title {
+  color: var(--primary);
+}
+
+.intake-reviewed-chevron {
+  font-size: 0.7rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
 /* Show older reviewed intakes toggle */
 .intake-older-toggle {
   display: flex;
