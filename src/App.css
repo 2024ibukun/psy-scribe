@@ -757,7 +757,7 @@
 
 /* Magic link tertiary hint paragraph */
 .login-magic-hint {
-  font-size: .82rem;
+  font-size: .9rem;
   color: var(--muted, #6b7280);
   text-align: center;
   line-height: 1.5;
