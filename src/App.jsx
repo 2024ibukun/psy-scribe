@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './firebase'
 import Login from './components/Login'
@@ -14,6 +14,10 @@ import ReturnToWorkPage from './components/statform/ReturnToWorkPage'
 import SchoolAccommodationPage from './components/statform/SchoolAccommodationPage'
 import HousingAccommodationPage from './components/statform/HousingAccommodationPage'
 import AuthAction from './components/AuthAction'
+import VanderbiltPage from './components/vanderbilt/VanderbiltPage'
+import VanderbiltParentForm from './components/vanderbilt/VanderbiltParentForm'
+import VanderbiltTeacherForm from './components/vanderbilt/VanderbiltTeacherForm'
+import VanderbiltResults from './components/vanderbilt/VanderbiltResults'
 import './App.css'
 
 // ── Hero preview cards ──
@@ -271,6 +275,7 @@ function Header({ user }) {
 // Homepage components
 // ─────────────────────────────────────────────
 function HeroPreview() {
+  const navigate = useNavigate()
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
@@ -289,7 +294,13 @@ function HeroPreview() {
       <p className="hero-preview__label">Clinical Assessment Workspace — Preview</p>
       <div className="hero-preview__cards">
         <AssessmentCard assessment={HERO_CARDS[0]} hideSendToPatient={true} onToast={setToast} />
-        <AssessmentCard assessment={HERO_CARDS[1]} hideSendToPatient={true} hideCompleteInOffice={true} onToast={setToast} />
+        <AssessmentCard
+          assessment={{ ...HERO_CARDS[1], status: 'active' }}
+          hideSendToPatient={true}
+          hideCompleteInOffice={true}
+          onToast={setToast}
+          onSendToTeacher={() => navigate('/workspace/vanderbilt')}
+        />
         <AssessmentCard assessment={HERO_CARDS[2]} hideSendToPatient={true} onToast={setToast} />
       </div>
     </div>
@@ -463,6 +474,12 @@ function AppShell({ user }) {
           <Route path="/settings/profile" element={
             <PrivateRoute user={user}><ClinicianProfilePage user={user} /></PrivateRoute>
           } />
+          <Route path="/workspace/vanderbilt" element={
+            <PrivateRoute user={user}><VanderbiltPage user={user} /></PrivateRoute>
+          } />
+          <Route path="/workspace/vanderbilt/:id/results" element={
+            <PrivateRoute user={user}><VanderbiltResults /></PrivateRoute>
+          } />
 
           {/* Legacy redirects — preserve all old URLs */}
           <Route path="/psychometrics" element={<Navigate to="/tools/assessments" replace />} />
@@ -486,6 +503,22 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u ?? null))
     return unsubscribe
   }, [])
+
+  // Vanderbilt patient forms — public, no auth, no shell
+  if (location.pathname.startsWith('/vanderbilt/parent/')) {
+    return (
+      <Routes>
+        <Route path="/vanderbilt/parent/:id" element={<VanderbiltParentForm />} />
+      </Routes>
+    )
+  }
+  if (location.pathname.startsWith('/vanderbilt/teacher/')) {
+    return (
+      <Routes>
+        <Route path="/vanderbilt/teacher/:id" element={<VanderbiltTeacherForm />} />
+      </Routes>
+    )
+  }
 
   // Public intake route — no auth required, no clinician chrome
   if (location.pathname.startsWith('/intake/')) {

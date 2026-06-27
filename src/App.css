@@ -3208,3 +3208,689 @@
   font-size: 0.78rem;
   color: var(--muted);
 }
+
+/* ═══════════════════════════════════════════════
+   Vanderbilt ADHD Rating Scale
+   ═══════════════════════════════════════════════ */
+
+/* ── Page layout ── */
+.vand-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+.vand-page-header { margin-bottom: 32px; }
+
+.vand-page-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+
+.vand-page-sub {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.vand-divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 40px 0;
+}
+
+/* ── Generate panel ── */
+.vand-generate-panel {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 28px;
+}
+
+.vand-panel-header { margin-bottom: 24px; }
+
+.vand-panel-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.vand-panel-sub {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.vand-child-info {
+  background: var(--surface, #f9fafb);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.vand-section-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+
+.vand-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 560px) { .vand-field-row { grid-template-columns: 1fr; } }
+
+.vand-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.vand-yesno {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+
+.vand-forms-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 700px) { .vand-forms-row { grid-template-columns: 1fr; } }
+
+.vand-form-section {
+  background: var(--surface, #f9fafb);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.vand-form-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+
+.vand-link-display {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vand-link-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0;
+}
+
+.vand-link-input {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.vand-link-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vand-email-btn, .vand-sms-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.vand-email-btn:hover, .vand-sms-btn:hover {
+  background: rgba(10, 108, 116, 0.06);
+}
+
+.vand-link-note {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.vand-new-link-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-align: left;
+}
+
+.vand-panel-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.vand-field-error {
+  font-size: 0.82rem;
+  color: var(--danger, #dc2626);
+  margin: 0 0 8px;
+}
+
+/* ── Dashboard ── */
+.vand-dashboard-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 20px;
+}
+
+.vand-assessment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vand-assessment-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.vand-assessment-card--complete { border-color: rgba(16, 185, 129, 0.35); }
+
+.vand-assessment-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.vand-assessment-card__name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 2px;
+}
+
+.vand-assessment-card__meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.vand-assessment-card__respondents {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 12px;
+  background: var(--surface, #f9fafb);
+  border-radius: 8px;
+}
+
+.vand-respondent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.vand-respondent__label {
+  font-weight: 700;
+  color: var(--muted);
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.vand-respondent__name { color: var(--ink); flex: 1; }
+
+.vand-assessment-card__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Status badges ── */
+.vand-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vand-status-badge--done { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.vand-status-badge--pending { background: rgba(245, 158, 11, 0.12); color: #B45309; }
+.vand-status-badge--partial { background: rgba(59, 130, 246, 0.12); color: #1D4ED8; }
+
+.vand-delete-btn {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.83rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.vand-delete-btn:hover { border-color: var(--danger, #dc2626); color: var(--danger, #dc2626); }
+.vand-delete-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.vand-loading, .vand-error, .vand-empty {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 24px 0;
+}
+
+.vand-error { color: var(--danger, #dc2626); }
+
+/* ── Patient-facing form ── */
+.vand-form-card { max-width: 760px; }
+
+.vand-form-header { margin-bottom: 20px; }
+
+.vand-form-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+
+.vand-form-sub { font-size: 0.9rem; color: var(--muted); margin: 0 0 4px; }
+
+.vand-form-note { font-size: 0.85rem; color: var(--primary); margin: 6px 0 0; }
+
+.vand-progress-label { font-size: 0.78rem; color: var(--muted); margin: 6px 0 20px; }
+
+.vand-instructions {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0 0 24px;
+  padding: 12px 14px;
+  background: var(--surface, #f9fafb);
+  border-radius: 8px;
+  border-left: 3px solid var(--primary);
+}
+
+/* ── Scale sections ── */
+.vand-section { margin-bottom: 32px; }
+
+.vand-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.vand-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.vand-section-range { font-size: 0.75rem; color: var(--muted); }
+
+.vand-section-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: -8px 0 14px;
+  font-style: italic;
+}
+
+.vand-options-legend {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: var(--surface, #f9fafb);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* ── Question rows ── */
+.vand-question {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.vand-question:last-child { border-bottom: none; }
+
+.vand-question--flagged {
+  background: rgba(245, 158, 11, 0.04);
+  border-radius: 6px;
+  padding: 12px 10px;
+  margin: 0 -10px;
+}
+
+.vand-question--unanswered {
+  outline: 2px solid rgba(220, 38, 38, 0.45);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.vand-question__text {
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.vand-question__num {
+  font-weight: 700;
+  color: var(--primary);
+  margin-right: 4px;
+}
+
+.vand-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.vand-comments { resize: vertical; font-family: inherit; }
+
+.vand-validation-msg { color: var(--danger, #dc2626); font-size: 0.85rem; margin: 12px 0; }
+
+.vand-submit-btn { width: 100%; margin-top: 12px; }
+
+.vand-submit-note { font-size: 0.78rem; color: var(--muted); text-align: center; margin: 10px 0 0; }
+
+/* ── Results page ── */
+.vand-results-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+.vand-results-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.vand-back-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 0 8px;
+  display: block;
+}
+
+.vand-results-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.vand-results-meta { font-size: 0.85rem; color: var(--muted); margin: 0; }
+
+.vand-results-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-top: 28px;
+}
+
+.vand-screen-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-left: 4px solid #F59E0B;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.vand-screen-banner strong { font-weight: 700; color: #92400E; white-space: nowrap; }
+
+.vand-adhd-screen-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 3px solid #F59E0B;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+}
+
+.vand-adhd-screen-banner strong { color: #92400E; }
+
+.vand-subscale-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 640px) { .vand-subscale-grid { grid-template-columns: 1fr; } }
+
+.vand-subscale-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.vand-subscale-card--positive { border-color: rgba(245, 158, 11, 0.5); }
+.vand-subscale-card--empty { opacity: 0.6; }
+
+.vand-subscale-card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+
+.vand-subscale-card__pending { font-size: 0.85rem; color: var(--muted); font-style: italic; }
+
+.vand-score-list { display: flex; flex-direction: column; gap: 6px; }
+
+.vand-score-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.vand-score-row:last-child { border-bottom: none; }
+
+.vand-score-row--positive {
+  background: rgba(245, 158, 11, 0.06);
+  border-radius: 4px;
+  padding: 5px 6px;
+  margin: 0 -6px;
+}
+
+.vand-score-row__label { flex: 1; color: var(--ink); }
+.vand-score-row__value { font-weight: 700; color: var(--ink); white-space: nowrap; }
+.vand-score-row--positive .vand-score-row__value { color: #92400E; }
+.vand-score-row__threshold { font-size: 0.7rem; color: var(--muted); font-weight: 400; margin-left: 4px; }
+.vand-score-row__flag { color: #F59E0B; font-size: 0.8rem; }
+
+.vand-respondent-details {
+  background: var(--surface, #f9fafb);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vand-respondent-detail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.vand-respondent-detail__label {
+  font-weight: 700;
+  color: var(--muted);
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.vand-comments-section { margin-bottom: 24px; }
+
+.vand-comments-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+
+.vand-comment-block {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+.vand-comment-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+.vand-comment-text {
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.vand-detail-section { margin-bottom: 16px; }
+
+.vand-response-detail {
+  padding: 16px;
+  background: var(--surface, #f9fafb);
+  border: 1px solid var(--line);
+  border-radius: 0 0 10px 10px;
+  border-top: none;
+}
+
+.vand-response-detail__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+
+.vand-response-section { margin-bottom: 20px; }
+
+.vand-response-section__title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.vand-response-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.83rem;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.vand-response-item:last-child { border-bottom: none; }
+
+.vand-response-item--flagged {
+  background: rgba(245, 158, 11, 0.05);
+  border-radius: 4px;
+  padding: 6px 6px;
+  margin: 0 -6px;
+}
+
+.vand-response-item__num { font-weight: 700; color: var(--muted); flex-shrink: 0; width: 22px; }
+.vand-response-item__text { flex: 1; color: var(--ink); line-height: 1.45; }
+
+.vand-response-item__answer {
+  font-weight: 600;
+  color: var(--muted);
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 80px;
+}
+
+.vand-response-item__answer--flagged { color: #B45309; }
+
+.vand-no-responses { font-size: 0.85rem; color: var(--muted); font-style: italic; }
+
+.vand-disclaimer {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 32px;
+  font-style: italic;
+}
+
+.vand-flag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.15);
+  color: #92400E;
+  margin-left: 6px;
+}

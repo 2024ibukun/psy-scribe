@@ -114,7 +114,7 @@ export const assessments = [
     category: ["child"],
     ageMode: ["child"],
     section: "child",
-    status: "coming-soon",
+    status: "active",
     isSafety: false,
     hasTeacherForm: true,
     featured: { adult: false, pediatric: true },
