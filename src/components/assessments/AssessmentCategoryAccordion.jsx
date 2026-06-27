@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { ACCORDION_SECTIONS } from "../../data/assessments"
 import AssessmentCard from "./AssessmentCard"
 
@@ -22,6 +23,7 @@ function ChevronIcon({ open }) {
 }
 
 export default function AssessmentCategoryAccordion({ assessments, mode, onToast }) {
+  const navigate = useNavigate()
   const defaultOpen = mode === "pediatric" ? "child" : "adult"
   const [openSection, setOpenSection] = useState(defaultOpen)
 
@@ -72,6 +74,7 @@ export default function AssessmentCategoryAccordion({ assessments, mode, onToast
                           key={assessment.id + "-" + key}
                           assessment={assessment}
                           onToast={onToast}
+                          onSendToTeacher={assessment.id === "vanderbilt" ? () => navigate("/workspace/vanderbilt") : undefined}
                         />
                       ))}
                     </div>

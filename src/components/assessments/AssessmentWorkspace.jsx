@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { assessments } from "../../data/assessments"
 import AssessmentModeToggle from "./AssessmentModeToggle"
 import AssessmentSearch from "./AssessmentSearch"
@@ -7,6 +8,7 @@ import AssessmentCategoryAccordion from "./AssessmentCategoryAccordion"
 import AssessmentCard from "./AssessmentCard"
 
 export default function AssessmentWorkspace() {
+  const navigate = useNavigate()
   const [mode, setMode] = useState("adult")
   const [searchQuery, setSearchQuery] = useState("")
   const [toast, setToast] = useState(null)
@@ -60,6 +62,7 @@ export default function AssessmentWorkspace() {
                   key={assessment.id}
                   assessment={assessment}
                   onToast={showToast}
+                  onSendToTeacher={assessment.id === "vanderbilt" ? () => navigate("/workspace/vanderbilt") : undefined}
                 />
               ))}
             </div>

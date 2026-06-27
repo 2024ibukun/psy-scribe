@@ -10,7 +10,6 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../../firebase'
@@ -439,11 +438,17 @@ function AssessmentDashboard({ user }) {
       try {
         const q = query(
           collection(db, 'vanderbiltAssessments'),
-          where('clinicianId', '==', user.uid),
-          orderBy('createdAt', 'desc')
+          where('clinicianId', '==', user.uid)
         )
         const snap = await getDocs(q)
-        setAssessments(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+        const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        // Sort newest-first client-side to avoid requiring a composite Firestore index
+        docs.sort((a, b) => {
+          const ta = a.createdAt?.seconds ?? 0
+          const tb = b.createdAt?.seconds ?? 0
+          return tb - ta
+        })
+        setAssessments(docs)
       } catch (err) {
         console.error(err)
         setError('Failed to load assessments.')
@@ -571,9 +576,9 @@ export default function VanderbiltPage({ user }) {
           Send VADPRS and VADTRS forms to parents and teachers. Scores and flags appear here when submitted.
         </p>
       </div>
-      <GeneratePanel user={user} />
-      <hr className="vand-divider" />
       <AssessmentDashboard user={user} />
+      <hr className="vand-divider" />
+      <GeneratePanel user={user} />
     </div>
   )
 }
