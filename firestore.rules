@@ -48,5 +48,44 @@ service cloud.firestore {
                     && resource.data.clinicianId == request.auth.uid;
     }
 
+    // ── vanderbiltAssessments ─────────────────────────────
+    // Created and read/updated/deleted by authenticated clinicians.
+    // On CREATE request.resource.data has the new fields (no resource yet).
+    // Best-effort updates from unauthenticated form submissions are also
+    // allowed so parentStatus/teacherStatus sync back without blocking submit.
+    match /vanderbiltAssessments/{docId} {
+      allow create: if request.auth != null
+                    && request.resource.data.clinicianId == request.auth.uid;
+      allow read: if request.auth != null
+                  && resource.data.clinicianId == request.auth.uid;
+      allow update: if (request.auth != null
+                        && resource.data.clinicianId == request.auth.uid)
+                    || true; // best-effort sync from unauthenticated form submissions
+      allow delete: if request.auth != null
+                    && resource.data.clinicianId == request.auth.uid;
+    }
+
+    // ── vanderbiltParentForms ─────────────────────────────
+    // Created by authenticated clinicians (via setDoc with token as doc ID).
+    // Publicly readable by anyone who knows the token URL.
+    // Updatable by anyone (unauthenticated parent completing the form).
+    match /vanderbiltParentForms/{tokenId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if true; // unauthenticated parent submits responses
+      allow delete: if request.auth != null
+                    && resource.data.clinicianId == request.auth.uid;
+    }
+
+    // ── vanderbiltTeacherForms ────────────────────────────
+    // Same pattern as vanderbiltParentForms.
+    match /vanderbiltTeacherForms/{tokenId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if true; // unauthenticated teacher submits responses
+      allow delete: if request.auth != null
+                    && resource.data.clinicianId == request.auth.uid;
+    }
+
   }
 }
