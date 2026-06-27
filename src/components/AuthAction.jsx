@@ -12,26 +12,27 @@ import { auth } from '../firebase'
 export default function AuthAction() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const mode = searchParams.get('mode')
+  const mode    = searchParams.get('mode')
   const oobCode = searchParams.get('oobCode')
 
-  // status: loading | email-prompt | form | error
-  const [status, setStatus] = useState('loading')
-  const [errorMessage, setErrorMessage] = useState('')
+  // status: loading | email-prompt | form | success | error
+  const [status,         setStatus]         = useState('loading')
+  const [errorMessage,   setErrorMessage]   = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
 
   // reset-password form
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [fieldError, setFieldError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [password,         setPassword]         = useState('')
+  const [confirmPassword,  setConfirmPassword]  = useState('')
+  const [fieldError,       setFieldError]       = useState('')
+  const [submitting,       setSubmitting]       = useState(false)
 
-  // email-prompt form (magic link opened on a different device)
+  // email-prompt (magic link opened on a different device)
   const [emailInput, setEmailInput] = useState('')
 
   useEffect(() => {
     if (mode === 'signIn') {
       if (!isSignInWithEmailLink(auth, window.location.href)) {
-        setErrorMessage('This link is not valid. Please request a new sign-in link.')
+        setErrorMessage('This link is not valid.')
         setStatus('error')
         return
       }
@@ -44,7 +45,7 @@ export default function AuthAction() {
       signInWithEmailLink(auth, saved, window.location.href)
         .then(() => {
           window.localStorage.removeItem('emailForSignIn')
-          navigate('/', { replace: true })
+          navigate('/tools/intake', { replace: true })
         })
         .catch((err) => {
           setErrorMessage(friendlyError(err.code))
@@ -62,11 +63,13 @@ export default function AuthAction() {
     if (mode === 'verifyEmail' || mode === 'recoverEmail') {
       applyActionCode(auth, oobCode)
         .then(() => {
-          const msg = mode === 'verifyEmail'
-            ? 'Email verified. You can now sign in.'
-            : 'Email recovered. You can now sign in.'
-          sessionStorage.setItem('authFlash', msg)
-          navigate('/', { replace: true })
+          setSuccessMessage(
+            mode === 'verifyEmail'
+              ? 'Email verified successfully.'
+              : 'Email recovered successfully.'
+          )
+          setStatus('success')
+          setTimeout(() => navigate('/login', { replace: true }), 2000)
         })
         .catch((err) => {
           setErrorMessage(friendlyError(err.code))
@@ -88,19 +91,14 @@ export default function AuthAction() {
   async function handleReset(e) {
     e.preventDefault()
     setFieldError('')
-    if (password !== confirmPassword) {
-      setFieldError('Passwords do not match.')
-      return
-    }
-    if (password.length < 6) {
-      setFieldError('Password must be at least 6 characters.')
-      return
-    }
+    if (password !== confirmPassword) { setFieldError('Passwords do not match.'); return }
+    if (password.length < 6)          { setFieldError('Password must be at least 6 characters.'); return }
     setSubmitting(true)
     try {
       await confirmPasswordReset(auth, oobCode, password)
-      sessionStorage.setItem('authFlash', 'Password updated. You can now sign in.')
-      navigate('/', { replace: true })
+      setSuccessMessage('Password reset successfully.')
+      setStatus('success')
+      setTimeout(() => navigate('/login', { replace: true }), 2000)
     } catch (err) {
       setFieldError(friendlyError(err.code))
       setSubmitting(false)
@@ -116,12 +114,14 @@ export default function AuthAction() {
     try {
       await signInWithEmailLink(auth, email, window.location.href)
       window.localStorage.removeItem('emailForSignIn')
-      navigate('/', { replace: true })
+      navigate('/tools/intake', { replace: true })
     } catch (err) {
       setFieldError(friendlyError(err.code))
       setSubmitting(false)
     }
   }
+
+  // ── Shared sub-components ─────────────────────────────────────────────────
 
   const Logo = () => (
     <div className="login-brand">
@@ -131,12 +131,21 @@ export default function AuthAction() {
     </div>
   )
 
+  const Footer = () => (
+    <p className="login-footer">For authorized clinical staff only. All activity is logged.</p>
+  )
+
+  // ── Status renders ────────────────────────────────────────────────────────
+
   if (status === 'loading') {
     return (
       <div className="login-shell">
         <div className="login-card">
           <Logo />
-          <p style={{ textAlign: 'center', color: 'var(--color-muted, #6b7280)' }}>Processing…</p>
+          <p style={{ textAlign: 'center', color: 'var(--muted, #6b7280)', margin: '0 0 1.5rem' }}>
+            Completing sign-in…
+          </p>
+          <Footer />
         </div>
       </div>
     )
@@ -148,9 +157,30 @@ export default function AuthAction() {
         <div className="login-card">
           <Logo />
           <p className="auth-message error" role="alert">{errorMessage}</p>
-          <a href="/" className="primary-button full-width" style={{ textAlign: 'center', display: 'block', marginTop: '1rem' }}>
+          <button
+            type="button"
+            className="primary-button full-width"
+            style={{ marginTop: '1rem' }}
+            onClick={() => navigate('/login', { replace: true })}
+          >
             Back to sign in
-          </a>
+          </button>
+          <Footer />
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'success') {
+    return (
+      <div className="login-shell">
+        <div className="login-card">
+          <Logo />
+          <p className="auth-message info" role="status">{successMessage}</p>
+          <p style={{ textAlign: 'center', fontSize: '.82rem', color: 'var(--muted, #6b7280)', marginTop: '.75rem' }}>
+            Redirecting to sign in…
+          </p>
+          <Footer />
         </div>
       </div>
     )
@@ -161,9 +191,9 @@ export default function AuthAction() {
       <div className="login-shell">
         <div className="login-card">
           <Logo />
-          <h2 style={{ marginBottom: '0.5rem', fontSize: '1.1rem', fontWeight: 600 }}>Confirm your email</h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--color-muted, #6b7280)', marginBottom: '1rem' }}>
-            Please enter your email to complete sign-in.
+          <h2 style={{ marginBottom: '.5rem', fontSize: '1.1rem', fontWeight: 600 }}>Confirm your email</h2>
+          <p style={{ fontSize: '.9rem', color: 'var(--muted, #6b7280)', marginBottom: '1rem' }}>
+            Please enter the email address you used to request this link.
           </p>
           <form className="login-form" onSubmit={handleEmailPrompt} noValidate>
             <label className="field-label" htmlFor="prompt-email">Email</label>
@@ -180,9 +210,10 @@ export default function AuthAction() {
             />
             {fieldError && <p className="auth-message error" role="alert">{fieldError}</p>}
             <button type="submit" className="primary-button full-width" disabled={submitting}>
-              {submitting ? 'Signing in…' : 'Sign in'}
+              {submitting ? 'Signing in…' : 'Continue'}
             </button>
           </form>
+          <Footer />
         </div>
       </div>
     )
@@ -219,9 +250,10 @@ export default function AuthAction() {
           />
           {fieldError && <p className="auth-message error" role="alert">{fieldError}</p>}
           <button type="submit" className="primary-button full-width" disabled={submitting}>
-            {submitting ? 'Updating…' : 'Set password'}
+            {submitting ? 'Updating…' : 'Reset password'}
           </button>
         </form>
+        <Footer />
       </div>
     </div>
   )
@@ -229,12 +261,12 @@ export default function AuthAction() {
 
 function friendlyError(code) {
   const map = {
-    'auth/expired-action-code': 'This link has expired. Please request a new one.',
-    'auth/invalid-action-code': 'This link is invalid or has already been used.',
-    'auth/invalid-email': 'Please enter a valid email address.',
-    'auth/user-disabled': 'This account has been disabled.',
-    'auth/user-not-found': 'No account found for this link.',
-    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/expired-action-code': 'This link has expired. Please request a new sign-in link.',
+    'auth/invalid-action-code': 'This link has already been used or is invalid. Please request a new sign-in link.',
+    'auth/invalid-email':       'Please enter a valid email address.',
+    'auth/user-disabled':       'This account has been disabled.',
+    'auth/user-not-found':      'No account found for this link.',
+    'auth/weak-password':       'Password must be at least 6 characters.',
   }
-  return map[code] ?? 'Something went wrong. Please try again.'
+  return map[code] ?? 'Something went wrong. Please request a new sign-in link.'
 }
