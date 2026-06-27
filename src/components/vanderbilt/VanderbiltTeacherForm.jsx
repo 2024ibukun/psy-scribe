@@ -12,6 +12,57 @@ import ClinicIdentityBanner from '../intake/ClinicIdentityBanner'
 
 function warn(err) { console.warn('[VanderbiltTeacher]', err?.code ?? err?.message ?? err) }
 
+// ── Last-name verification gate ──
+function LastNameVerifyScreen({ storedChildName, profile, onVerified }) {
+  const [nameInput, setNameInput] = useState('')
+  const [error,     setError]     = useState('')
+
+  // Extract last name from stored full name for comparison
+  const storedLast = storedChildName
+    ? storedChildName.trim().split(/\s+/).pop().toLowerCase()
+    : ''
+
+  function handleVerify(e) {
+    e.preventDefault()
+    if (nameInput.trim().toLowerCase() === storedLast) {
+      onVerified()
+    } else {
+      setError('Unable to verify. Please contact your clinic.')
+    }
+  }
+
+  return (
+    <div className="intake-page">
+      <div className="intake-card">
+        <ClinicIdentityBanner profile={profile} />
+        <p className="intake-step-label">Identity Verification</p>
+        <h1 className="intake-title">Before you begin</h1>
+        <p className="intake-subtitle">
+          Please confirm the child's last name to continue.
+        </p>
+        <form onSubmit={handleVerify} noValidate>
+          <div className="intake-field">
+            <label className="intake-label" htmlFor="vt-name-verify">Child's last name</label>
+            <input
+              id="vt-name-verify"
+              type="text"
+              className="intake-input"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              autoComplete="off"
+              required
+            />
+          </div>
+          {error && <p className="intake-error" role="alert">{error}</p>}
+          <button type="submit" className="intake-primary-btn" style={{ marginTop: '16px' }}>
+            Continue
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 function QuestionRow({ num, text, type, value, onChange }) {
   const options = type === 'performance' ? PERFORMANCE_OPTIONS : SYMPTOM_OPTIONS
   const flagged = type === 'symptom' && value >= 2
@@ -43,6 +94,7 @@ export default function VanderbiltTeacherForm() {
   const [profile,   setProfile]   = useState(null)
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState('')
+  const [verified,  setVerified]  = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [responses, setResponses] = useState({})
   const [comments,  setComments]  = useState('')
@@ -152,6 +204,16 @@ export default function VanderbiltTeacherForm() {
           <p className="intake-error-msg">{error}</p>
         </div>
       </div>
+    )
+  }
+
+  if (!verified && formData) {
+    return (
+      <LastNameVerifyScreen
+        storedChildName={formData.childName}
+        profile={profile}
+        onVerified={() => setVerified(true)}
+      />
     )
   }
 

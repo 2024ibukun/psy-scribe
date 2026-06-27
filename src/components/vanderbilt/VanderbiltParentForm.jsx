@@ -12,6 +12,51 @@ import ClinicIdentityBanner from '../intake/ClinicIdentityBanner'
 
 function warn(err) { console.warn('[VanderbiltParent]', err?.code ?? err?.message ?? err) }
 
+// ── DOB verification gate ──
+function DobVerifyScreen({ storedDob, profile, onVerified }) {
+  const [dobInput, setDobInput] = useState('')
+  const [error,    setError]    = useState('')
+
+  function handleVerify(e) {
+    e.preventDefault()
+    if (dobInput === storedDob) {
+      onVerified()
+    } else {
+      setError('Unable to verify. Please contact your clinic.')
+    }
+  }
+
+  return (
+    <div className="intake-page">
+      <div className="intake-card">
+        <ClinicIdentityBanner profile={profile} />
+        <p className="intake-step-label">Identity Verification</p>
+        <h1 className="intake-title">Before you begin</h1>
+        <p className="intake-subtitle">
+          Please confirm the child's date of birth to continue.
+        </p>
+        <form onSubmit={handleVerify} noValidate>
+          <div className="intake-field">
+            <label className="intake-label" htmlFor="vp-dob-verify">Date of Birth</label>
+            <input
+              id="vp-dob-verify"
+              type="date"
+              className="intake-input"
+              value={dobInput}
+              onChange={(e) => setDobInput(e.target.value)}
+              required
+            />
+          </div>
+          {error && <p className="intake-error" role="alert">{error}</p>}
+          <button type="submit" className="intake-primary-btn" style={{ marginTop: '16px' }}>
+            Continue
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ── Question row component ──
 function QuestionRow({ num, text, type, value, onChange }) {
   const options = type === 'performance' ? PERFORMANCE_OPTIONS : SYMPTOM_OPTIONS
@@ -44,6 +89,7 @@ export default function VanderbiltParentForm() {
   const [profile,   setProfile]   = useState(null)
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState('')
+  const [verified,  setVerified]  = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [responses, setResponses] = useState({}) // { q1: null, q2: null, ... }
   const [comments,  setComments]  = useState('')
@@ -164,6 +210,16 @@ export default function VanderbiltParentForm() {
           <p className="intake-error-msg">{error}</p>
         </div>
       </div>
+    )
+  }
+
+  if (!verified && formData) {
+    return (
+      <DobVerifyScreen
+        storedDob={formData.childDOB}
+        profile={profile}
+        onVerified={() => setVerified(true)}
+      />
     )
   }
 
