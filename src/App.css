@@ -700,8 +700,8 @@
 
 /* Primary Google button — larger, more prominent */
 .google-button--primary {
-  padding: .8rem 1rem;
-  font-size: 1rem;
+  padding: .65rem 1rem;
+  font-size: .925rem;
   font-weight: 600;
   border-color: #d1d5db;
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
@@ -757,7 +757,7 @@
 
 /* Magic link tertiary hint paragraph */
 .login-magic-hint {
-  font-size: .9rem;
+  font-size: .95rem;
   color: var(--muted, #6b7280);
   text-align: center;
   line-height: 1.5;
