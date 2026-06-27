@@ -85,7 +85,10 @@ export default function Login() {
     clearStatus();
     setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(auth, email, {
+        url: 'https://psychmetric.app/auth/action',
+        handleCodeInApp: true,
+      });
       setInfo(`Password reset link sent to ${email}. Check your inbox.`);
       setShowForgotPw(false);
     } catch (err) {
