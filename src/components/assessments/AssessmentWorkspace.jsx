@@ -63,6 +63,8 @@ export default function AssessmentWorkspace() {
                   assessment={assessment}
                   onToast={showToast}
                   onSendToTeacher={assessment.id === "vanderbilt" ? () => navigate("/workspace/vanderbilt") : undefined}
+                  hideSendToPatient={assessment.id === "vanderbilt"}
+                  hideCompleteInOffice={assessment.id === "vanderbilt"}
                 />
               ))}
             </div>

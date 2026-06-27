@@ -18,6 +18,8 @@ export default function FeaturedAssessmentGrid({ mode, onToast }) {
             assessment={assessment}
             onToast={onToast}
             onSendToTeacher={assessment.id === "vanderbilt" ? () => navigate("/workspace/vanderbilt") : undefined}
+            hideSendToPatient={assessment.id === "vanderbilt"}
+            hideCompleteInOffice={assessment.id === "vanderbilt"}
           />
         ))}
       </div>
