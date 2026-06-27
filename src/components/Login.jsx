@@ -4,6 +4,7 @@ import {
   signInWithPopup,
   sendSignInLinkToEmail,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 
@@ -13,11 +14,13 @@ const ACTION_CODE_SETTINGS = {
 };
 
 export default function Login() {
-  const [mode, setMode] = useState("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [status, setStatus] = useState({ type: "", message: "" });
-  const [loading, setLoading] = useState(false);
+  const [emailMode,     setEmailMode]     = useState("signin"); // "signin" | "signup"
+  const [showMagicLink, setShowMagicLink] = useState(false);
+  const [showForgotPw,  setShowForgotPw]  = useState(false);
+  const [email,         setEmail]         = useState("");
+  const [password,      setPassword]      = useState("");
+  const [status,        setStatus]        = useState({ type: "", message: "" });
+  const [loading,       setLoading]       = useState(false);
 
   useEffect(() => {
     const flash = sessionStorage.getItem("authFlash");
@@ -28,14 +31,15 @@ export default function Login() {
   }, []);
 
   function setError(message) { setStatus({ type: "error", message }); }
-  function setInfo(message) { setStatus({ type: "info", message }); }
+  function setInfo(message)  { setStatus({ type: "info",  message }); }
+  function clearStatus()     { setStatus({ type: "", message: "" }); }
 
   async function handleEmailAuth(e) {
     e.preventDefault();
-    setStatus({ type: "", message: "" });
+    clearStatus();
     setLoading(true);
     try {
-      if (mode === "signup") {
+      if (emailMode === "signup") {
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
@@ -48,7 +52,7 @@ export default function Login() {
   }
 
   async function handleGoogle() {
-    setStatus({ type: "", message: "" });
+    clearStatus();
     setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
@@ -63,7 +67,7 @@ export default function Login() {
 
   async function handleMagicLink(e) {
     e.preventDefault();
-    setStatus({ type: "", message: "" });
+    clearStatus();
     setLoading(true);
     try {
       await sendSignInLinkToEmail(auth, email, ACTION_CODE_SETTINGS);
@@ -76,52 +80,176 @@ export default function Login() {
     }
   }
 
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    clearStatus();
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setInfo(`Password reset link sent to ${email}. Check your inbox.`);
+      setShowForgotPw(false);
+    } catch (err) {
+      setError(friendlyError(err.code));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="login-shell">
       <div className="login-card">
+
+        {/* Logo */}
         <div className="login-brand">
           <span className="logo-wrap">
             <img src="/logo.png" alt="PsychMetric" className="login-logo" />
           </span>
         </div>
 
-        <div className="login-tabs" role="tablist">
-          <button role="tab" aria-selected={mode === "signin"} className={mode === "signin" ? "active" : ""} onClick={() => { setMode("signin"); setStatus({ type: "", message: "" }); }}>Sign in</button>
-          <button role="tab" aria-selected={mode === "signup"} className={mode === "signup" ? "active" : ""} onClick={() => { setMode("signup"); setStatus({ type: "", message: "" }); }}>Create account</button>
-          <button role="tab" aria-selected={mode === "magic"} className={mode === "magic" ? "active" : ""} onClick={() => { setMode("magic"); setStatus({ type: "", message: "" }); }}>Magic link</button>
-        </div>
-
-        {mode !== "magic" && (
-          <form className="login-form" onSubmit={handleEmailAuth} noValidate>
-            <label className="field-label" htmlFor="email">Email</label>
-            <input id="email" type="email" className="field-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" required />
-            <label className="field-label" htmlFor="password">Password</label>
-            <input id="password" type="password" className="field-input" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={mode === "signup" ? "Create a password" : "Your password"} autoComplete={mode === "signup" ? "new-password" : "current-password"} required />
-            {status.message && <p className={`auth-message ${status.type}`} role="alert">{status.message}</p>}
-            <button type="submit" className="primary-button full-width" disabled={loading}>
-              {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
-            </button>
-          </form>
+        {/* Status / flash messages */}
+        {status.message && (
+          <p className={`auth-message ${status.type}`} role="alert" style={{ marginBottom: "1rem" }}>
+            {status.message}
+          </p>
         )}
 
-        {mode === "magic" && (
-          <form className="login-form" onSubmit={handleMagicLink} noValidate>
-            <p className="magic-description">Enter your email and we'll send you a one-click sign-in link — no password needed.</p>
-            <label className="field-label" htmlFor="magic-email">Email</label>
-            <input id="magic-email" type="email" className="field-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" required />
-            {status.message && <p className={`auth-message ${status.type}`} role="alert">{status.message}</p>}
+        {/* ── PRIMARY: Google ─────────────────────────────── */}
+        <button
+          className="google-button google-button--primary"
+          onClick={handleGoogle}
+          disabled={loading}
+          type="button"
+        >
+          <GoogleIcon />
+          Continue with Google
+        </button>
+
+        <div className="login-divider"><span>or</span></div>
+
+        {/* ── SECONDARY: Email / Password ─────────────────── */}
+        {!showForgotPw ? (
+          <form className="login-form" onSubmit={handleEmailAuth} noValidate>
+            <label className="field-label" htmlFor="ep-email">Email</label>
+            <input
+              id="ep-email"
+              type="email"
+              className="field-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+            />
+            <label className="field-label" htmlFor="ep-password">Password</label>
+            <input
+              id="ep-password"
+              type="password"
+              className="field-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={emailMode === "signup" ? "Create a password" : "Your password"}
+              autoComplete={emailMode === "signup" ? "new-password" : "current-password"}
+              required
+            />
             <button type="submit" className="primary-button full-width" disabled={loading}>
-              {loading ? "Sending…" : "Send sign-in link"}
+              {loading ? "Please wait…" : emailMode === "signup" ? "Create account" : "Sign in"}
+            </button>
+            <div className="login-form-sub">
+              {emailMode === "signin" && (
+                <button
+                  type="button"
+                  className="login-text-link"
+                  onClick={() => { setShowForgotPw(true); clearStatus(); }}
+                >
+                  Forgot password?
+                </button>
+              )}
+              <button
+                type="button"
+                className="login-text-link"
+                onClick={() => {
+                  setEmailMode(emailMode === "signin" ? "signup" : "signin");
+                  clearStatus();
+                }}
+              >
+                {emailMode === "signin" ? "Create an account" : "Sign in instead"}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form className="login-form" onSubmit={handleForgotPassword} noValidate>
+            <p className="login-form-hint">
+              Enter your email and we'll send you a password reset link.
+            </p>
+            <label className="field-label" htmlFor="fp-email">Email</label>
+            <input
+              id="fp-email"
+              type="email"
+              className="field-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+            />
+            <button type="submit" className="primary-button full-width" disabled={loading}>
+              {loading ? "Sending…" : "Send reset link"}
+            </button>
+            <button
+              type="button"
+              className="login-text-link"
+              style={{ marginTop: "6px" }}
+              onClick={() => { setShowForgotPw(false); clearStatus(); }}
+            >
+              ← Back to sign in
             </button>
           </form>
         )}
 
         <div className="login-divider"><span>or</span></div>
 
-        <button className="google-button" onClick={handleGoogle} disabled={loading} type="button">
-          <GoogleIcon />
-          Continue with Google
-        </button>
+        {/* ── TERTIARY: Magic link ─────────────────────────── */}
+        {!showMagicLink ? (
+          <p className="login-magic-hint">
+            Prefer a passwordless link?{" "}
+            <button
+              type="button"
+              className="login-text-link login-text-link--inline"
+              onClick={() => { setShowMagicLink(true); clearStatus(); }}
+            >
+              Send me a magic link
+            </button>
+          </p>
+        ) : (
+          <form className="login-form" onSubmit={handleMagicLink} noValidate>
+            <label className="field-label" htmlFor="magic-email">Email</label>
+            <input
+              id="magic-email"
+              type="email"
+              className="field-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+            />
+            <button
+              type="submit"
+              className="primary-button--outlined full-width"
+              disabled={loading}
+            >
+              {loading ? "Sending…" : "Send magic link"}
+            </button>
+            <button
+              type="button"
+              className="login-text-link"
+              style={{ marginTop: "6px" }}
+              onClick={() => { setShowMagicLink(false); clearStatus(); }}
+            >
+              Cancel
+            </button>
+          </form>
+        )}
 
         <p className="login-footer">For authorized clinical staff only. All activity is logged.</p>
       </div>
@@ -142,14 +270,14 @@ function GoogleIcon() {
 
 function friendlyError(code) {
   const map = {
-    "auth/user-not-found": "No account found with that email.",
-    "auth/wrong-password": "Incorrect password.",
-    "auth/email-already-in-use": "An account with this email already exists.",
-    "auth/weak-password": "Password must be at least 6 characters.",
-    "auth/invalid-email": "Please enter a valid email address.",
-    "auth/too-many-requests": "Too many attempts. Please try again later.",
-    "auth/network-request-failed": "Network error. Check your connection.",
-    "auth/invalid-credential": "Invalid email or password.",
+    "auth/user-not-found":        "No account found with that email.",
+    "auth/wrong-password":        "Incorrect password.",
+    "auth/email-already-in-use":  "An account with this email already exists.",
+    "auth/weak-password":         "Password must be at least 6 characters.",
+    "auth/invalid-email":         "Please enter a valid email address.",
+    "auth/too-many-requests":     "Too many attempts. Please try again later.",
+    "auth/network-request-failed":"Network error. Check your connection.",
+    "auth/invalid-credential":    "Invalid email or password.",
   };
   return map[code] ?? "Something went wrong. Please try again.";
 }

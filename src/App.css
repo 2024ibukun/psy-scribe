@@ -698,6 +698,80 @@
 .google-button:hover:not(:disabled) { background: #f9fafb; border-color: #d1d5db; }
 .google-button:disabled { opacity: .6; cursor: not-allowed; }
 
+/* Primary Google button — larger, more prominent */
+.google-button--primary {
+  padding: .8rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-color: #d1d5db;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+.google-button--primary:hover:not(:disabled) {
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  border-color: #9ca3af;
+}
+
+/* Outlined button (magic link submit) */
+.primary-button--outlined {
+  min-height: 44px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: .9rem;
+  font-weight: 600;
+  background: transparent;
+  color: #0A6C74;
+  border: 1.5px solid #0A6C74;
+  cursor: pointer;
+  transition: background .15s;
+}
+.primary-button--outlined:hover:not(:disabled) { background: rgba(10,108,116,.06); }
+.primary-button--outlined:disabled { opacity: .6; cursor: not-allowed; }
+
+/* Small text links (Forgot password?, Create an account, Cancel) */
+.login-text-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: .8rem;
+  color: #0A6C74;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  line-height: 1.5;
+}
+.login-text-link:hover { color: #085960; }
+.login-text-link--inline { display: inline; }
+
+/* Row below email/password submit: "Forgot password?" + "Create an account" */
+.login-form-sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: .25rem;
+}
+
+/* Magic link tertiary hint paragraph */
+.login-magic-hint {
+  font-size: .82rem;
+  color: var(--muted, #6b7280);
+  text-align: center;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Hint text in forgot-password sub-form */
+.login-form-hint {
+  font-size: .82rem;
+  color: var(--muted, #6b7280);
+  margin: 0 0 .25rem;
+  line-height: 1.5;
+}
+
 .login-footer { margin-top: 1.5rem; font-size: .73rem; text-align: center; color: var(--muted, #9ca3af); }
 
 .header-user { display: flex; align-items: center; gap: .75rem; }
